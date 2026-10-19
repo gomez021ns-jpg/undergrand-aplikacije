@@ -1,0 +1,526 @@
+/* ───────────── teme (UnderGRAND paleta, ista u svim aplikacijama: narandžasti akcenat #F0A23B) ───────────── */
+:root {
+  --bg: #f3f1ec;
+  --header: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f3f0ea;
+  --text: #1c1e20;
+  --muted: #5a6167;
+  --border: #ddd7cc;
+  --accent: #F0A23B;          /* pozadine (dugmad, oznake) */
+  --accent-text: #9b5806;     /* tekst u boji akcenta (čitljiv na svetloj podlozi) */
+  --accent-ink: #1b1206;      /* tekst NA akcentu */
+  --note-bg: #fbf3e3;
+  --note-border: #ecd3a3;
+  --mark: #ffe0a6;
+  --danger: #c0392b;
+  --ok: #1a7a42;
+  --shadow: 0 1px 2px rgba(60, 50, 30, 0.08), 0 2px 8px rgba(60, 50, 30, 0.05);
+  --radius: 14px;
+  --font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-head: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101214;
+    --header: #0b0d0f;
+    --surface: #171a1d;
+    --surface-2: #1e2226;
+    --text: #f1efea;
+    --muted: #9aa1a7;
+    --border: #2e3439;
+    --accent-text: #F0A23B;
+    --note-bg: #2a2216;
+    --note-border: #5a4320;
+    --mark: #6b4a14;
+    --danger: #f2646f;
+    --ok: #46c579;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #101214;
+  --header: #0b0d0f;
+  --surface: #171a1d;
+  --surface-2: #1e2226;
+  --text: #f1efea;
+  --muted: #9aa1a7;
+  --border: #2e3439;
+  --accent-text: #F0A23B;
+  --note-bg: #2a2216;
+  --note-border: #5a4320;
+  --mark: #6b4a14;
+  --danger: #f2646f;
+  --ok: #46c579;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+/* ───────────── osnova ───────────── */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.55 var(--font);
+}
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--font-head); font-weight: 750; letter-spacing: -0.01em; line-height: 1.2; margin: 0 0 0.4em; }
+h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); }
+h4 { margin: 1.3em 0 0.4em; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+p { margin: 0 0 0.8em; }
+ul, ol { margin: 0 0 0.8em; padding-left: 1.3em; }
+li { margin: 0.2em 0; }
+mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1px; }
+[hidden] { display: none !important; }
+
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+.muted { color: var(--muted); }
+.small { font-size: 0.875rem; }
+.eyebrow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--game-accent, var(--accent-text)); font-weight: 600; }
+.kw { font-weight: 650; color: var(--game-accent, var(--accent-text)); }
+
+/* ───────────── gornja traka ───────────── */
+/* UnderGRAND zaglavlje: isto u svim aplikacijama (logo | NAZIV + verzija, slogan | tema) */
+.ug-top { background: var(--header); border-bottom: 1px solid rgb(240 162 59 / 0.3); }
+.ug-top-inner { display: flex; align-items: center; gap: 18px; padding-top: 10px; padding-bottom: 10px; }
+.ug-logo { display: flex; flex: none; background: #0d1013; border-radius: 12px; padding: 6px 12px; }
+:root[data-theme="dark"] .ug-logo { background: transparent; padding: 0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ug-logo { background: transparent; padding: 0; } }
+.ug-logo img { height: 56px; display: block; }
+.ug-sep { width: 2px; align-self: stretch; margin: 8px 0; background: var(--border); border-radius: 1px; }
+.ug-title { flex: 1; min-width: 0; }
+.ug-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ug-name { margin: 0; font-family: var(--font); font-size: 26px; font-weight: 800; letter-spacing: 5px; line-height: 1.1; color: var(--text); }
+.ug-slogan { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+.ug-ver {
+  color: var(--accent-text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px;
+  padding: 2px 10px; font: inherit; font-size: 11px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+}
+.ug-ver:hover { border-color: var(--accent); }
+.ug-actions { display: flex; gap: 10px; flex: none; }
+.ug-icon-btn {
+  width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  display: inline-grid; place-items: center; cursor: pointer;
+}
+.ug-icon-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.ug-icon-btn svg { width: 17px; height: 17px; }
+/* Pun ekran (punekran.js) */
+.fs-btn {
+  height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text);
+  font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+}
+.fs-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.fs-btn svg { width: 16px; height: 16px; flex: none; }
+@media (max-width: 520px) { .fs-btn { width: 38px; padding: 0; justify-content: center; } .fs-txt { display: none; } }
+@media print { .fs-btn { display: none; } }
+@media (max-width: 760px) {
+  .ug-top-inner { gap: 10px; flex-wrap: wrap; }
+  .ug-sep { display: none; }
+  .ug-logo img { height: 40px; }
+  .ug-name { font-size: 18px; letter-spacing: 3px; }
+  .ug-slogan { font-size: 12px; }
+}
+
+/* ───────────── verzija („Šta je novo“) ───────────── */
+.ver-btn {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 0.8rem; cursor: pointer;
+}
+.ver-btn:hover { color: var(--text); background: var(--surface-2); }
+.ver-dlg {
+  width: min(560px, calc(100vw - 32px)); max-height: min(80vh, 720px); padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.ver-dlg[open] { display: flex; flex-direction: column; }
+.ver-dlg::backdrop { background: rgb(0 0 0 / 0.5); }
+.ver-top { padding: 18px 20px 0; border-bottom: 1px solid var(--border); }
+/* klizač je samo uz spisak, tanak i odmaknut od zaobljenih uglova */
+.ver-list {
+  flex: 1; min-height: 0; overflow-y: auto; padding: 0 14px 4px 20px; margin: 0 6px 10px 0;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.ver-item:first-child { border-top: 0; }
+.ver-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ver-h h2 { margin: 0; font-size: 1.35rem; }
+.ver-x { background: none; border: 0; color: var(--muted); font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.ver-x:hover { color: var(--text); }
+.ver-cur { color: var(--muted); font-size: 0.9rem; margin: 4px 0 12px; }
+.ver-item { border-top: 1px solid var(--border); padding: 10px 0 2px; }
+.ver-item h3 { font-size: 1rem; margin: 0 0 4px; }
+.ver-item h3 span { color: var(--muted); font-family: var(--font); font-weight: 400; font-size: 0.85rem; margin-left: 6px; }
+.ver-item h3 .ver-tip { font-size: 0.7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); vertical-align: 2px; }
+.ver-tip.t-x { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.ver-tip.t-y { color: var(--accent-text); border-color: var(--accent); }
+.ver-item ul { margin: 0 0 8px; padding-left: 1.2em; }
+.ver-item li { font-size: 0.92rem; }
+
+/* ───────────── početna ───────────── */
+.hero { padding: 28px 0 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }
+.hero h1 { font-size: 30px; margin: 0 0 10px; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.stat { font-size: 0.85rem; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; }
+.stat b { color: var(--text); }
+.search-box { position: relative; display: block; width: min(380px, 100%); }
+.search-box svg { position: absolute; left: 15px; top: 50%; width: 17px; height: 17px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search {
+  width: 100%; max-width: 420px; padding: 11px 18px; margin-top: 8px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text); font: inherit;
+}
+.search-box .search { margin: 0; max-width: none; padding-left: 42px; }
+.search:focus { outline: 2px solid var(--game-accent, var(--accent)); outline-offset: 1px; }
+.search-sm { padding: 8px 12px; font-size: 0.9rem; margin: 0 0 12px; max-width: none; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+
+/* Kartica: omot u boji igre (monogram + ikonica vrste, ili fotografija kutije), tekst, prečice na dnu. */
+.game-card {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: var(--shadow); overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.game-card:hover { transform: translateY(-3px); border-color: var(--game-accent); box-shadow: 0 10px 28px rgb(0 0 0 / 0.18); }
+.gc-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+.gc-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gc-cover {
+  position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+  background:
+    radial-gradient(120% 140% at 85% 0%, color-mix(in srgb, var(--game-accent) 55%, white 18%) 0%, transparent 60%),
+    linear-gradient(135deg, var(--game-accent), color-mix(in srgb, var(--game-accent) 45%, black));
+}
+.gc-mono {
+  position: absolute; left: 18px; bottom: 6px; font-size: 52px; font-weight: 900; letter-spacing: 2px; line-height: 1;
+  color: rgb(255 255 255 / 0.92); text-shadow: 0 2px 12px rgb(0 0 0 / 0.25);
+}
+.gc-kind { position: absolute; right: 14px; top: 14px; width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; background: rgb(0 0 0 / 0.22); color: #fff; }
+.gc-kind svg { width: 18px; height: 18px; }
+.gc-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.gc-body { padding: 14px 18px 4px; display: flex; flex-direction: column; flex: 1; }
+.game-card h3 { font-size: 1.35rem; margin: 4px 0 4px; }
+.gc-body > p { margin: 0 0 10px; }
+.gc-body .chips { margin-top: auto; padding-top: 4px; }
+.gc-actions { display: flex; align-items: center; gap: 6px; padding: 12px 18px 16px; }
+.gc-btn {
+  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; font-size: 0.82rem; font-weight: 600;
+  text-decoration: none; cursor: pointer;
+}
+.gc-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.gc-btn svg { width: 14px; height: 14px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+.chip-accent { background: color-mix(in srgb, var(--game-accent, var(--accent)) 18%, transparent); color: var(--text); }
+.chip-wish { background: transparent; border: 1px dashed var(--accent); color: var(--accent-text); font-weight: 600; }
+
+/* lista želja na početnoj: prigušene kartice sa isprekidanim okvirom */
+.lib-section { margin-top: 44px; }
+.lib-title { font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
+.lib-title .heart { color: var(--accent); }
+.lib-section > p { margin: 0 0 14px; }
+.game-card.wish { border-style: dashed; box-shadow: none; }
+.game-card.wish .gc-cover { filter: saturate(0.45) brightness(0.85); }
+.game-card.wish:hover .gc-cover { filter: none; }
+.add-hint { margin: 40px 0 60px; padding: 20px; border: 1px dashed var(--border); border-radius: var(--radius); }
+.add-hint h2 { font-size: 1.2rem; }
+.add-hint p { margin: 0; color: var(--muted); }
+.empty { color: var(--muted); font-style: italic; }
+
+/* ───────────── stranica igre ───────────── */
+.back { display: inline-block; margin: 20px 0 8px; text-decoration: none; color: var(--muted); font-size: 0.9rem; }
+.back:hover { color: var(--text); }
+.game-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 20px; }
+.game-head > div:first-child { flex: 1; min-width: 0; }
+/* Opis koristi celu širinu pored dugmeta Štampaj (do ~2 reda na širokom ekranu). */
+.summary { max-width: 1000px; margin-top: 8px; }
+
+.btn {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 10px 20px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); white-space: nowrap;
+}
+/* Glavno dugme je u boji aplikacije (narandžasto), nezavisno od boje igre. */
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
+.btn-primary:hover { filter: brightness(1.07); }
+
+.print-menu { position: relative; flex-shrink: 0; }
+.print-pop {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: 270px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); padding: 6px;
+}
+.print-pop button {
+  display: block; width: 100%; text-align: left; font: inherit; color: var(--text);
+  background: none; border: 0; padding: 10px 12px; border-radius: 8px; cursor: pointer;
+}
+.print-pop button:hover { background: var(--surface-2); }
+.print-pop button span { display: block; font-size: 0.8rem; color: var(--muted); }
+.print-tip { font-size: 0.78rem; color: var(--muted); margin: 6px 12px 6px; }
+
+/* Tabovi kao prekidač: izabrani je narandžasta pilula (kao u ostalim UnderGRAND aplikacijama). */
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 24px; overflow-x: auto; scrollbar-width: none; width: fit-content; max-width: 100%;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px; box-shadow: var(--shadow);
+}
+.tab {
+  text-decoration: none; padding: 8px 16px; color: var(--muted); white-space: nowrap; border-radius: 999px; font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+}
+.tab:hover { color: var(--text); background: var(--surface-2); }
+.tab.active { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.tab.active .count { background: rgb(0 0 0 / 0.15); }
+.count { font-size: 0.72rem; background: var(--surface-2); border-radius: 999px; padding: 1px 7px; margin-left: 4px; }
+.tab-panel { padding-bottom: 60px; }
+
+/* brzi podsetnik */
+.quick-grid { columns: 2 340px; column-gap: 16px; }
+.qcard {
+  break-inside: avoid; margin-bottom: 16px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; box-shadow: var(--shadow);
+}
+.qcard h3 { font-size: 1.1rem; border-bottom: 2px solid var(--game-accent, var(--accent)); padding-bottom: 6px; margin-bottom: 10px; }
+.qcard > :last-child { margin-bottom: 0; }
+
+.note, .example {
+  background: var(--note-bg); border: 1px solid var(--note-border); border-radius: 10px;
+  padding: 10px 14px; margin: 10px 0; font-size: 0.93rem;
+}
+.example { background: var(--surface-2); border-color: var(--border); }
+
+table { width: 100%; border-collapse: collapse; margin: 0 0 1em; font-size: 0.95rem; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+.kwtable td { padding: 4px 6px; font-size: 0.9rem; }
+.kwtable td:first-child { white-space: nowrap; width: 1%; }
+
+/* puna pravila */
+.rules-layout { display: grid; grid-template-columns: 250px 1fr; gap: 32px; align-items: start; }
+.toc { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin: 0; }
+.toc a {
+  display: block; padding: 6px 10px; text-decoration: none; color: var(--muted);
+  border-radius: 8px; font-size: 0.92rem;
+}
+.toc a::before { content: counter(toc) ". "; opacity: 0.6; }
+.toc a:hover { background: var(--surface-2); color: var(--text); }
+
+.chapter {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 22px 24px; margin-bottom: 18px; scroll-margin-top: 16px; box-shadow: var(--shadow);
+}
+.chapter h2 { font-size: 1.45rem; display: flex; align-items: baseline; gap: 10px; }
+.chapter h2 .num {
+  font-family: var(--font); font-size: 0.8rem; font-weight: 700; color: #fff;
+  background: var(--game-accent, var(--accent)); border-radius: 6px; padding: 2px 7px; transform: translateY(-3px);
+}
+.chapter > :last-child { margin-bottom: 0; }
+
+.sources { margin-top: 28px; font-size: 0.9rem; }
+.sources h4 { margin-top: 0; }
+
+/* ključne reči */
+.gloss-group { margin: 24px 0; }
+.group-title { font-size: 1.1rem; color: var(--muted); font-family: var(--font); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.glossary { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 0; }
+.gloss-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.gloss-item dt { font-weight: 700; color: var(--game-accent, var(--accent-text)); margin-bottom: 4px; }
+.gloss-item dd { margin: 0; font-size: 0.93rem; }
+
+/* česta pitanja */
+.faq { margin: 0; }
+.faq dt { font-weight: 650; margin-top: 12px; }
+.faq dt::before { content: "P: "; color: var(--game-accent, var(--accent-text)); }
+.faq dd { margin: 4px 0 0; color: var(--text); }
+.faq dd::before { content: "O: "; color: var(--muted); font-weight: 650; }
+
+/* opis vrsta karata */
+.types { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 8px 0 12px; }
+.type-card { border: 1px solid var(--border); border-left: 3px solid var(--game-accent, var(--accent)); border-radius: 10px; padding: 12px 14px; background: var(--surface); }
+.type-card h5 { margin: 0 0 8px; font-size: 1rem; font-family: var(--font-head); }
+.type-card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 0.9rem; }
+.type-card dt { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 2px; }
+.type-card dd { margin: 0; }
+
+/* šeme (inline SVG iz games/figures.js) */
+.fig { margin: 18px 0; }
+.fig svg { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; font-family: var(--font); font-size: 14px; overflow: visible; }
+.fig figcaption { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+.fig text { fill: var(--text); }
+.fig .f-title { font-weight: 700; }
+.fig .f-small { font-size: 12.5px; }
+.fig .f-mid { font-size: 17px; }
+.fig .f-muted { fill: var(--muted); font-size: 12px; }
+.fig .f-label { fill: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; }
+.fig .f-kw { fill: var(--game-accent, var(--accent-text)); font-weight: 700; }
+.fig .f-big { font-family: var(--font-head); font-size: 32px; font-weight: 700; }
+.fig .f-danger { fill: var(--danger); font-size: 12px; font-weight: 700; }
+.fig .f-ok { fill: var(--ok); font-size: 12px; font-weight: 700; }
+.fig .f-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.5; }
+.fig .f-acc { fill: color-mix(in srgb, var(--game-accent, var(--accent)) 16%, var(--surface)); stroke: var(--game-accent, var(--accent)); stroke-width: 1.5; }
+.fig .f-card { fill: var(--surface); stroke: var(--muted); stroke-width: 1.5; }
+.fig .f-back { fill: var(--surface-2); }
+.fig .f-dead { stroke: var(--danger); stroke-dasharray: 5 4; }
+.fig .f-dim { opacity: 0.55; }
+.fig .f-line { stroke: var(--muted); stroke-width: 1.8; fill: none; }
+.fig .f-line.dashed { stroke-dasharray: 6 5; }
+.fig .f-acc-line { stroke: var(--game-accent, var(--accent)); }
+.fig .f-head { fill: var(--muted); }
+.fig .f-acc-head { fill: var(--game-accent, var(--accent)); }
+.fig .f-tiny { font-size: 11px; }
+.fig .f-cost { fill: var(--surface); stroke: var(--text); stroke-width: 1.5; }
+.fig .f-might { fill: var(--surface-2); stroke: var(--text); stroke-width: 1.5; }
+.fig .f-illus { fill: color-mix(in srgb, var(--game-accent, var(--accent)) 9%, var(--surface-2)); }
+.fig .f-acc-stroke { stroke: var(--game-accent, var(--accent)); }
+.fig .f-textline { stroke: var(--muted); stroke-opacity: 0.45; stroke-width: 3; stroke-linecap: round; }
+.fig .f-flavor { stroke-dasharray: 2 5; }
+.fig .f-leader { stroke: var(--muted); stroke-width: 1; }
+.fig .f-dot { fill: var(--muted); }
+.fig .f-dark-side { fill: #8e2b2b; stroke: #5e1717; stroke-width: 1.5; }
+.fig .f-light-side { fill: #3f7bd6; stroke: #25569f; stroke-width: 1.5; }
+.fig .f-marker { fill: #fff; stroke: var(--text); stroke-width: 2; }
+.fig .f-marker-ring { fill: none; stroke: var(--text); stroke-width: 2.5; stroke-dasharray: 4 3; }
+.fig .f-val-atk { fill: #b8483e; }
+.fig .f-val-res { fill: #c99a2e; }
+.fig .f-val-force { fill: #3f7bd6; }
+.fig .f-on-dark { fill: #fff; }
+.fig .f-pitch-dot { fill: #e9c46a; stroke: #8a6a1e; stroke-width: 1.5; }
+.fig .f-strip-red { fill: #c0392b; }
+.fig .f-strip-yellow { fill: #e0b326; }
+.fig .f-strip-blue { fill: #2f6fca; }
+.fig .f-def { fill: #6b7280; }
+.fig .f-disrupt { fill: #f4f1e8; stroke: #8a8577; stroke-width: 1.5; }
+.fig .f-disrupt + text { fill: #1d1c1a; }
+.fig .f-worm { fill: #e889a5; stroke: #9c3b58; stroke-width: 2; }
+.fig .f-divider { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4 5; }
+
+/* naslovna fotografija igre (opciono, images/<id>.jpg) */
+.game-card-cover { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+/* slika na vrhu stranice igre: cela slika (contain), a prazan prostor sa strane popunjava ista slika, zamućena */
+.game-cover { position: relative; height: clamp(180px, 32vw, 300px); overflow: hidden; border-radius: var(--radius); margin: 4px 0 20px; background: #000; }
+.game-cover::before { content: ""; position: absolute; inset: -30px; background: var(--cover) center / cover no-repeat; filter: blur(22px) brightness(0.55); }
+.game-cover img { position: relative; display: block; width: 100%; height: 100%; object-fit: contain; }
+
+/* dodaci */
+.empty-state { text-align: center; padding: 48px 16px; border: 1px dashed var(--border); border-radius: var(--radius); }
+.empty-state p { max-width: 50ch; margin: 0 auto; }
+.expansion { margin-bottom: 36px; }
+.expansion > header { margin-bottom: 16px; }
+.exp-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.exp-nav a {
+  text-decoration: none; font-size: 0.85rem; padding: 5px 12px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+}
+.exp-nav a:hover { color: var(--text); border-color: var(--game-accent, var(--accent)); }
+.decklists { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.decklists h4 { margin-top: 0.4em; }
+.decktable td { padding: 3px 8px; font-size: 0.9rem; }
+.decktable td.num { width: 1%; white-space: nowrap; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ───────────── telefon ───────────── */
+@media (max-width: 760px) {
+  .game-head { flex-direction: column; }
+  .print-menu { width: 100%; }
+  .print-menu .btn { width: 100%; }
+  .print-pop { left: 0; right: auto; width: 100%; }
+  .rules-layout { grid-template-columns: 1fr; gap: 12px; }
+  .toc { position: static; max-height: none; }
+  .toc ol { display: none; }
+  .chapter { padding: 18px 16px; }
+  .glossary { grid-template-columns: 1fr; }
+  table { font-size: 0.88rem; }
+  th, td { padding: 6px; }
+}
+
+/* ───────────── štampa / PDF ───────────── */
+#print-root { display: none; }
+
+@page { size: A4; margin: 11mm 12mm; }
+
+@media print {
+  /* :not(#_) podiže specifičnost iznad pravila za tamnu temu — štampa je uvek svetla */
+  :root:not(#_) {
+    --bg: #fff; --surface: #fff; --surface-2: #f2f0ea; --text: #111; --muted: #555;
+    --border: #cfcac0; --note-bg: #faf5e6; --note-border: #d9c690; --accent: #a8600a; --accent-text: #a8600a; --accent-ink: #fff;
+    --danger: #b3261e; --ok: #2e7d32;
+    color-scheme: light;
+  }
+  body.printing #app { display: none; }
+  body.printing #print-root { display: block; }
+  .ver-dlg, .ver-dlg[open] { display: none; }
+  body { background: #fff; font-size: 10pt; line-height: 1.4; }
+  a { text-decoration: none; }
+}
+
+#print-root { --game-accent: #a8600a; color: #111; }
+#print-root .p-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 2.5px solid var(--game-accent); padding-bottom: 5px; margin-bottom: 10px;
+}
+#print-root .p-head h1 { font-size: 20pt; margin: 0; }
+#print-root .p-sub { font-size: 8.5pt; color: #555; }
+#print-root .p-label { text-align: right; font-weight: 700; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.08em; }
+#print-root .p-label span { font-weight: 400; font-size: 7.5pt; text-transform: none; letter-spacing: 0; color: #555; }
+
+/* podsetnik: sve na 1 stranu */
+#print-root .p-quick { font-size: 8.3pt; line-height: 1.32; }
+#print-root .p-quick-grid { columns: 2; column-gap: 5mm; }
+#print-root .p-quick .qcard {
+  box-shadow: none; border: 1px solid #cfcac0; border-radius: 6px; padding: 2.2mm 3mm; margin-bottom: 2.6mm; break-inside: avoid;
+}
+#print-root .p-quick .qcard h3 { font-size: 9.5pt; padding-bottom: 1mm; margin-bottom: 1.4mm; border-bottom-width: 1.5px; }
+#print-root .p-quick ul, #print-root .p-quick ol { padding-left: 1.2em; margin-bottom: 0.3em; }
+#print-root .p-quick li { margin: 0.05em 0; }
+#print-root .p-quick p { margin-bottom: 0.35em; }
+#print-root .p-quick .note { font-size: 8pt; padding: 1.4mm 2mm; margin: 1mm 0 0; border-radius: 4px; }
+#print-root .p-quick .kwtable td { font-size: 8pt; padding: 0.4mm 1.2mm; }
+
+/* puna pravila */
+#print-root .p-full { break-before: page; font-size: 9.6pt; line-height: 1.42; }
+#print-root .p-full:first-child { break-before: auto; }
+#print-root .p-toc { margin-bottom: 6mm; }
+#print-root .p-toc h3 { font-size: 11pt; }
+#print-root .p-toc ol { columns: 2; font-size: 9pt; }
+#print-root .chapter { box-shadow: none; border: 0; border-top: 1px solid #cfcac0; border-radius: 0; padding: 4mm 0 0; margin: 0 0 4mm; }
+#print-root .chapter h2 { font-size: 13pt; break-after: avoid; }
+#print-root h4 { break-after: avoid; margin-top: 0.9em; }
+#print-root table, #print-root .note, #print-root .example, #print-root li { break-inside: avoid; }
+#print-root th, #print-root td { padding: 1.2mm 2mm; font-size: 9pt; }
+#print-root .glossary { display: block; columns: 2; column-gap: 6mm; }
+#print-root .gloss-item { break-inside: avoid; border: 0; border-bottom: 1px solid #e3dfd6; border-radius: 0; padding: 1.5mm 0; }
+#print-root .gloss-item dd { font-size: 8.8pt; }
+#print-root .sources a::after { content: " - " attr(href); font-size: 7.5pt; color: #555; }
+#print-root .p-foot { margin-top: 4mm; font-size: 7pt; color: #777; text-align: center; }
+#print-root .p-quick + .p-foot { margin-top: 0; }
+#print-root .expansion > header .chips, #print-root .exp-nav { display: none; }
+#print-root .expansion .quick-grid { columns: 2; column-gap: 5mm; font-size: 9pt; }
+#print-root .expansion .qcard { box-shadow: none; padding: 2.5mm 3mm; margin-bottom: 3mm; }
+#print-root .decklists { grid-template-columns: 1fr 1fr; gap: 6mm; }
+#print-root .decktable td { padding: 0.3mm 1.5mm; font-size: 8.5pt; }
+#print-root .types { grid-template-columns: 1fr 1fr; gap: 3mm; }
+#print-root .type-card { break-inside: avoid; padding: 2mm 3mm; }
+#print-root .type-card dl { font-size: 8.8pt; }
+#print-root .fig { break-inside: avoid; margin: 3mm 0; }
+#print-root .fig svg { max-width: 120mm; }
+#print-root .fig figcaption { font-size: 8pt; margin-top: 1.5mm; }
+
+/* ───────────── Dugmad u UnderGRAND stilu (kao u Statistici): blagi preliv, „dubina“ ispod, spuste se na klik; glavna su narandžasta ───────────── */
+:root { --b-top: #efebe4; --b-bot: #f8f6f2; --b-hover: #e6e0d5; --b-line: #c3bcae; --b-shadow: #cdc6b8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --b-top: #262b30; --b-bot: #1e2226; --b-hover: #30363c; --b-line: #444b52; --b-shadow: #07090a; } }
+:root[data-theme="dark"] { --b-top: #262b30; --b-bot: #1e2226; --b-hover: #30363c; --b-line: #444b52; --b-shadow: #07090a; }
+.btn, .gc-btn {
+  border: 1px solid var(--b-line); background: linear-gradient(var(--b-top), var(--b-bot)); color: var(--text);
+  border-radius: 999px; box-shadow: 0 3px 0 var(--b-shadow); font-weight: 600;
+  transition: transform .06s, box-shadow .06s, background .15s;
+}
+.btn:hover, .gc-btn:hover { background: linear-gradient(var(--b-hover), var(--b-top)); border-color: var(--b-line); color: var(--text); filter: none; }
+.btn:active, .gc-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--b-shadow); }
+.btn-primary { border-color: #f7b65e; background: linear-gradient(#f7b65e, #d8871f); color: #1b1206; font-weight: 700; }
+.btn-primary:hover { background: linear-gradient(#ffc574, #F0A23B); border-color: #ffc574; color: #1b1206; filter: none; }
+.gc-btn { box-shadow: 0 2px 0 var(--b-shadow); }
+.gc-btn:active { box-shadow: 0 1px 0 var(--b-shadow); }

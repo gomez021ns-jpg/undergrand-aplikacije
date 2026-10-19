@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sportski centar</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="ug-top ug-hero">
+    <div class="ug-top-inner">
+      <a class="ug-logo" href="#/" title="Pregled"><img src="assets/logo.png" alt="UnderGRAND"></a>
+      <div class="ug-sep" aria-hidden="true"></div>
+      <div class="ug-title">
+        <div class="ug-title-row"><span class="ug-name">SPORT</span><button class="ug-ver" type="button" data-verzije title="Šta je novo"></button></div>
+        <p class="ug-slogan">Rezultati, tabele i raspored na jednom mestu.</p>
+      </div>
+      <div class="ug-actions"><button class="ug-icon-btn" id="theme-btn" type="button"></button></div>
+    </div>
+  </header>
+  <div class="topbar"><div class="topbar-in"><nav class="leagues" id="league-nav"></nav></div></div>
+  <div class="subbar" id="subbar"></div>
+  <main class="wrap" id="main"></main>
+  <footer class="wrap site-foot" id="foot"></footer>
+
+  <script src="core.js"></script>
+  <script src="leagues/f1live.js"></script>
+  <script src="leagues/f1.js"></script>
+  <script src="leagues/espn.js"></script>
+  <script src="leagues/euroleague.js"></script>
+  <script src="leagues/fudbal.js"></script>
+  <script src="app.js"></script>
+  <script src="verzije.js"></script>
+  <script src="punekran.js"></script>
+</body>
+</html>

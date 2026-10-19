@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UnderGRAND Statistika</title>
+<link rel="icon" href="assets/app.ico">
+<link rel="stylesheet" href="styles.css">
+<script>
+  // Tema pre iscrtavanja (bez treptanja): zapamćen izbor, inače tamna.
+  try { document.documentElement.dataset.theme = localStorage.getItem("ug-tema") === "light" ? "light" : "dark"; }
+  catch { document.documentElement.dataset.theme = "dark"; }
+</script>
+</head>
+<body>
+<header class="top">
+  <div class="logo-tile"><img src="assets/logo.png" alt="UnderGRAND"></div>
+  <div class="top-sep" aria-hidden="true"></div>
+  <div class="title-box">
+    <div class="title-row"><h1>STATISTIKA</h1><button type="button" class="ver-badge" data-verzije title="Šta je novo"></button></div>
+    <p class="slogan">Brojke ne lažu. Mi ih samo lepo prikazujemo.</p>
+  </div>
+  <div class="top-actions">
+    <button type="button" class="hbtn" id="btn-baza" hidden></button>
+    <button type="button" class="hbtn" id="btn-tema"></button>
+    <button type="button" class="hbtn" id="btn-history"></button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div id="drop" class="drop" hidden><div class="drop-box"><b>Pusti fajlove ovde</b><span>Zeno e-mail (.eml), .mbox ili Google Takeout .zip</span></div></div>
+<dialog id="modal" class="modal"></dialog>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<input type="file" id="f-eml" accept=".eml,message/rfc822" multiple hidden>
+<input type="file" id="f-arch" accept=".zip,.mbox" hidden>
+
+<script src="verzije.js"></script>
+<script src="js/istorija.js"></script>
+<script src="js/logika.js"></script>
+<script src="js/mail.js"></script>
+<script src="js/baza.js"></script>
+<script src="js/grafikoni.js"></script>
+<script src="js/izvestaj.js"></script>
+<script src="js/app.js"></script>
+<script src="punekran.js"></script>
+</body>
+</html>
