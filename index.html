@@ -34,6 +34,15 @@
   .app p { margin: 0; color: var(--muted); font-size: 15px; }
   .app .go { margin-top: auto; padding-top: 6px; color: var(--acc); font-weight: 700; font-size: 14px; }
   .note { margin: 28px 0 0; color: var(--muted); font-size: 13px; }
+  .note a { color: var(--acc); }
+  .dl-h { margin: 44px 0 6px; font-size: 18px; letter-spacing: 3px; text-transform: uppercase; }
+  .dl-intro { margin: 0 0 16px; color: var(--muted); font-size: 15px; }
+  .dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  a.dl-item { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 14px 46px; position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; color: inherit; text-decoration: none; transition: border-color .15s; }
+  a.dl-item::before { content: "↓"; position: absolute; left: 14px; top: 13px; width: 22px; height: 22px; border-radius: 50%; background: var(--acc); color: var(--acc-on); font-weight: 800; display: grid; place-items: center; font-size: 13px; }
+  a.dl-item:hover { border-color: var(--acc); }
+  a.dl-item:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+  .dl-item span { color: var(--muted); font-size: 13px; }
   @media (max-width: 600px) { .sep { display: none; } .logo { height: 42px; } h1 { font-size: 19px; letter-spacing: 3px; } }
 </style>
 </head>
@@ -76,6 +85,24 @@
     </a>
   </div>
   <p class="note">Aplikacije rade u pregledaču, bez instalacije. Podaci za sport stižu sa javnih sportskih servisa.</p>
+
+  <h2 class="dl-h">Preuzmi za Windows</h2>
+  <p class="dl-intro">Cele aplikacije za tvoj računar: raspakuj zip i pokreni <b>Pokreni.bat</b> (Sport: <b>index.html</b>). Ništa ne treba instalirati - Python je u paketu, uputstvo takođe.</p>
+  <div class="dl">
+    <a class="dl-item" href="https://github.com/gomez021ns-jpg/undergrand-aplikacije/releases/latest/download/Napred-u-proslost.zip">
+      <b>Napred u prošlost</b><span>Katalog albuma sa Discogs-a, priprema radio emisije, Godište, nova izdanja i kompilacije. Treba tvoj (besplatan) Discogs token. · 17 MB</span>
+    </a>
+    <a class="dl-item" href="https://github.com/gomez021ns-jpg/undergrand-aplikacije/releases/latest/download/UnderGRAND-kompilacije.zip">
+      <b>UnderGRAND kompilacije</b><span>Katalog kompilacija sa tvog diska: žanrovi, preslušavanje, plejlista za emisiju, provera naziva i tagova. · 12 MB</span>
+    </a>
+    <a class="dl-item" href="https://github.com/gomez021ns-jpg/undergrand-aplikacije/releases/latest/download/Riftbound-kolekcija.zip">
+      <b>Riftbound kolekcija</b><span>Kolekcija se čuva u folder pored aplikacije, cene su uvek sveže. · 12 MB</span>
+    </a>
+    <a class="dl-item" href="https://github.com/gomez021ns-jpg/undergrand-aplikacije/releases/latest/download/Sportski-centar.zip">
+      <b>Sportski centar</b><span>Isto kao na webu, da radi i sa tvog računara. · 0,4 MB</span>
+    </a>
+  </div>
+  <p class="note">Ako Windows prikaže „Windows je zaštitio vaš računar“: <b>Više informacija → Ipak pokreni</b>. Sve verzije: <a href="https://github.com/gomez021ns-jpg/undergrand-aplikacije/releases">Preuzimanja na GitHub-u</a>.</p>
 </main>
 </body>
 </html>

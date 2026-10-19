@@ -127,6 +127,8 @@
   // Web verzija (GitHub Pages, od 1.5.0): objavi_web.py u objavljeni index.html ubaci window.RB_WEB = true.
   // Tada nema servera: kolekcija je posetiočeva (u njegovom pregledaču, kreće prazna), cene su iz data/cene.json.
   const WEB = !!window.RB_WEB;
+  // Paket za preuzimanje (paket.py ubaci window.RB_EMPTY = true): kolekcija kreće prazna, bez korisnikovih špilova.
+  const NOSEED = WEB || !!window.RB_EMPTY;
   let saveFile = "";      // pun put do save/riftbound-kolekcija.json (javlja server)
   let saveStateMessage = "";
   let saveWarn = false;   // čuvanje u folder ne radi → upozorenje u gornjoj traci
@@ -435,8 +437,8 @@
         <textarea id="bk" spellcheck="false">${esc(JSON.stringify(COLL))}</textarea>
         <div class="row"><button class="btn primary" id="bkfile">Sačuvaj kao fajl</button><button class="btn" id="bkcopy">Kopiraj</button><button class="btn" id="bkload">Učitaj iz teksta</button><span class="hint" id="bkmsg"></span></div>
       </div>
-      ${WEB ? `<div class="panel"><h2>Baza karata</h2>
-        <p class="hint">Karte i slike stižu sa riftcodex.com; cene su TCGplayer cene od poslednje objave sajta${PRICES?.t ? ` (${new Date(PRICES.t * 1000).toLocaleDateString("sr-RS")})` : ""}.</p>
+      ${NOSEED ? `<div class="panel"><h2>Baza karata</h2>
+        <p class="hint">Karte i slike stižu sa riftcodex.com; ${WEB ? `cene su TCGplayer cene od poslednje objave sajta${PRICES?.t ? ` (${new Date(PRICES.t * 1000).toLocaleDateString("sr-RS")})` : ""}` : "cene su sveže TCGplayer cene (preuzimaju se pri pokretanju)"}.</p>
         <div class="row"><button class="btn" id="refresh">Osveži bazu karata</button><span class="hint" id="rsmsg"></span></div>
       </div>` : `<div class="panel"><h2>Osnovni špilovi</h2>
         <p class="hint">Kolekcija je napunjena iz: ${PRECONS.map((p) => esc(p.product)).join(", ")}.</p>
@@ -822,7 +824,7 @@
       $("#status").innerHTML = `<p class="err">Ne mogu da učitam bazu karata sa riftcodex.com (${esc(err.message)}).</p><p class="hint">Proveri internet vezu pa osveži stranicu.</p>`;
       return;
     }
-    if (!saved || !Object.keys(saved).length) { COLL = WEB ? {} : seedCollection(); saveColl(); }
+    if (!saved || !Object.keys(saved).length) { COLL = NOSEED ? {} : seedCollection(); saveColl(); }
     else {
       checkSeeds();
       if (SERVER && (!srv.kolekcija || localNewer)) saveColl(); // kolekcija iz pregledača ide u folder save
