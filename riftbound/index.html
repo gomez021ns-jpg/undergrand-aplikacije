@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Riftbound kolekcija</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="ug-top">
+    <div class="ug-top-inner">
+      <a class="ug-logo" href="#" title="Moja kolekcija" data-tab="coll"><img src="assets/logo.png" alt="UnderGRAND"></a>
+      <div class="ug-sep" aria-hidden="true"></div>
+      <div class="ug-title">
+        <div class="ug-title-row"><span class="ug-name">RIFTBOUND</span><button class="ug-ver" type="button" data-verzije title="Šta je novo"></button></div>
+        <p class="ug-slogan">Od gomile karata do špila za stolom.</p>
+      </div>
+      <div class="ug-actions"><button class="ug-icon-btn" id="theme-btn" type="button"></button></div>
+    </div>
+  </header>
+  <div class="topbar"><div class="topbar-in">
+    <nav class="tabs" id="tabs">
+      <button type="button" data-tab="coll">Moja kolekcija</button>
+      <button type="button" data-tab="kolekcionar">Kolekcionar</button>
+      <button type="button" data-tab="add">Dodaj karte u kolekciju</button>
+      <button type="button" data-tab="deck">Predlog špila</button>
+      <button type="button" data-tab="backup">Rezervna kopija</button>
+    </nav>
+    <div class="stats" id="stats"></div>
+  </div></div>
+  <main class="wrap" id="app">
+    <div class="status" id="status">Učitavam bazu karata…<div class="prog"><i id="progbar"></i></div><div id="progtxt"></div></div>
+  </main>
+
+  <script>window.RB_WEB = true;</script>
+  <script src="data/precons.js"></script>
+  <script src="app.js"></script>
+  <script src="verzije.js"></script>
+  <script src="punekran.js"></script>
+</body>
+</html>
