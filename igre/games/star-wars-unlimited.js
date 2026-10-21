@@ -79,7 +79,7 @@ registerGame({
   category: "Kartaška igra (TCG)",
   accent: "#3a9bb0",
   cover: "images/star-wars-unlimited.jpg",
-  owned: "Shadows of the Galaxy starter (stiže)",
+  owned: "Shadows of the Galaxy starter",
   rulesVersion: "Quickstart (Spark of Rebellion) + Comprehensive Rules 8.0",
   summary:
     "Svaki igrač vodi jednog Star Wars junaka ili zlikovca (leader) i špil od 50 karata. Jedinice se bore u dve arene - na zemlji i u svemiru - a cilj je srušiti protivničku bazu na 0 HP. Igrači naizmenično povlače po jednu akciju, pa je svaka odluka bitna.",

@@ -26,7 +26,6 @@ registerExpansion("star-wars-unlimited", {
   type: "Set 2 · Starter",
   released: "jul 2024",
   owned: true,
-  onTheWay: true,              // korisnik čeka da mu stigne (6. 10. 2026)
   summary:
     "Drugi set Star Wars: Unlimited-a, u starteru za dvoje: The Mandalorian protiv Moff Gideon-a. Dva gotova špila od po 50 karata, spremna za igru odmah. Set donosi tri nove mehanike: Capture (zarobljavanje), Bounty (ucena) i Smuggle (krijumčarenje iz resursa).",
 

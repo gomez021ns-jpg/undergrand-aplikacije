@@ -4,6 +4,9 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.14.1", datum: "2026-10-21", izmene: [
+      "Star Wars: Unlimited - Shadows of the Galaxy Two-Player Starter je stigao: oznaka „Stiže“ je sklonjena i dodatak se vodi kao deo kolekcije.",
+    ] },
     { v: "1.14.0", datum: "2026-10-18", izmene: [
       "Novi dodatak za Riftbound: Unleashed - Champion Deck: Vi. Šta je u kutiji, kako se igra Vi (ključne karte, plan napada i šema), objašnjenje „viška štete“ na kome počiva špil, sa šemom i čestim situacijama, i spisak svih karata.",
     ] },
