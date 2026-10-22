@@ -368,8 +368,11 @@ button, input, select { font: inherit; color: inherit; }
 .miss-meta { font: 600 11.5px var(--mono); color: var(--muted); }
 .miss-meta b { color: var(--brand-text); }
 
-/* --- Karte u kolekciji: crno-bele „tačkice“ (dither, SVG filter #ug-tacke u index.html), na prelaz mišem pune boje
-   (od 1.6.1, korisnikova želja; varijanta B). Samo velike karte u mreži (.tile .img); prozor karte i sličice ostaju u boji. --- */
-.tile .img img, .tile .img .ph { filter: url(#ug-tacke); }
-.tile .img:hover img, .tile .img:hover .ph { filter: none; }
+/* --- Karte u kolekciji: crno-bele i kontrastne, preko njih sitna zrnca (beli sloj + SVG filter #ug-tacke u index.html),
+   na prelaz mišem se za 0,3 s pojave pune boje (od 1.6.1, korisnikova želja; uzor digthegig.live). Samo velike karte u
+   mreži (.tile .img); prozor karte i sličice ostaju u boji. --- */
+.tile .img img, .tile .img .ph { filter: grayscale(1) contrast(1.5); transition: filter .3s ease; }
+.tile .img::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #fff; filter: url(#ug-tacke); opacity: .5; transition: opacity .3s ease; }
+.tile .img:hover img, .tile .img:hover .ph { filter: grayscale(0) contrast(1); }
+.tile .img:hover::after { opacity: 0; }
 .tile .img .tag, .tile .img .qty, .tile .img .badge { z-index: 2; }

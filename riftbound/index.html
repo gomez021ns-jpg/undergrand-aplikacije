@@ -8,16 +8,13 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<!-- „Tačkice“ (dither) za slike u spiskovima: siva slika + šum, presečeno na crno/belo pa pomešano sa sivom
-     (korisnik izabrao varijantu B, kao na štampanom plakatu). Koristi ga CSS: filter: url(#ug-tacke). -->
+<!-- Zrnca za slike u spiskovima (kao na digthegig.live, korisnikov uzor): beli sloj preko slike se ovim filterom pretvori
+     u sitan crno-beli šum. Koristi ga CSS (::after preko slike): filter: url(#ug-tacke). -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <filter id="ug-tacke" color-interpolation-filters="sRGB">
-    <feColorMatrix type="saturate" values="0" result="g"/>
-    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="1" seed="2" result="n"/>
-    <feColorMatrix in="n" type="saturate" values="0" result="ng"/>
-    <feComposite in="g" in2="ng" operator="arithmetic" k2="1" k3="0.7" k4="-0.35" result="mx"/>
-    <feComponentTransfer in="mx" result="d"><feFuncR type="discrete" tableValues="0.05 0.95"/><feFuncG type="discrete" tableValues="0.05 0.95"/><feFuncB type="discrete" tableValues="0.05 0.95"/></feComponentTransfer>
-    <feComposite in="d" in2="g" operator="arithmetic" k2="0.6" k3="0.4"/>
+  <filter id="ug-tacke">
+    <feTurbulence type="fractalNoise" baseFrequency="1.5" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncR type="linear" slope="10" intercept="-4.5"/><feFuncG type="linear" slope="10" intercept="-4.5"/><feFuncB type="linear" slope="10" intercept="-4.5"/></feComponentTransfer>
   </filter>
 </svg>
 
