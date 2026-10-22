@@ -5,7 +5,7 @@
 (() => {
   const VERZIJE = [
     { v: "1.6.1", datum: "2026-10-22", izmene: [
-      "Karte u kolekciji su crno-bele sa zrnom, kao štampani poster; kad pređeš mišem preko karte, pojavi se u punim bojama. Prozor karte ostaje u boji.",
+      "Karte u kolekciji su crno-bele, od sitnih tačkica, kao štampani plakat; kad pređeš mišem preko karte, pojavi se u punim bojama. Prozor karte ostaje u boji.",
     ] },
     { v: "1.6.0", datum: "2026-10-21", izmene: [
       "„Moja kolekcija“ ima izbor „Ređaj po“: set i broj, ime, energija, Might, kupljeni špil, broj primeraka, cena i retkost, uz dugme za obrnut redosled. Izbor se pamti.",

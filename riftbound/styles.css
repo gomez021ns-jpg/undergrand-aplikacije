@@ -368,11 +368,8 @@ button, input, select { font: inherit; color: inherit; }
 .miss-meta { font: 600 11.5px var(--mono); color: var(--muted); }
 .miss-meta b { color: var(--brand-text); }
 
-/* --- Karte u kolekciji: crno-belo sa zrnom (kao štampani poster), na prelaz mišem pune boje (od 1.6.1, korisnikova želja).
-   Samo velike karte u mreži (.tile .img); prozor karte i sličice ostaju u boji. --- */
-.tile .img img, .tile .img .ph { filter: grayscale(1) contrast(1.2) brightness(.92); transition: filter .45s ease; }
-.tile .img::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 180px; mix-blend-mode: overlay; opacity: .55; transition: opacity .45s ease; }
+/* --- Karte u kolekciji: crno-bele „tačkice“ (dither, SVG filter #ug-tacke u index.html), na prelaz mišem pune boje
+   (od 1.6.1, korisnikova želja; varijanta B). Samo velike karte u mreži (.tile .img); prozor karte i sličice ostaju u boji. --- */
+.tile .img img, .tile .img .ph { filter: url(#ug-tacke); }
 .tile .img:hover img, .tile .img:hover .ph { filter: none; }
-.tile .img:hover::after { opacity: 0; }
 .tile .img .tag, .tile .img .qty, .tile .img .badge { z-index: 2; }
-@media (prefers-reduced-motion: reduce) { .tile .img img, .tile .img .ph, .tile .img::after { transition: none; } }
