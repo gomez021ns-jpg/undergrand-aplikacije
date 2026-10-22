@@ -4,6 +4,15 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.6.1", datum: "2026-10-22", izmene: [
+      "Karte u kolekciji su crno-bele sa zrnom, kao štampani poster; kad pređeš mišem preko karte, pojavi se u punim bojama. Prozor karte ostaje u boji.",
+    ] },
+    { v: "1.6.0", datum: "2026-10-21", izmene: [
+      "„Moja kolekcija“ ima izbor „Ređaj po“: set i broj, ime, energija, Might, kupljeni špil, broj primeraka, cena i retkost, uz dugme za obrnut redosled. Izbor se pamti.",
+      "Kod energije, Might-a, retkosti i kupljenog špila karte su podeljene u grupe sa naslovom i brojem karata; karte bez te vrednosti (npr. rune) idu na kraj.",
+      "Po kupljenom špilu: karte iz Proving Grounds, Vendetta Showdown i Vi špila su u svojoj grupi (karta iz više špilova je u svakom), a ostale pod „Iz boostera i ostalo“.",
+      "Kad je izabrana cena, na svakoj karti piše koliko vredi.",
+    ] },
     { v: "1.5.0", datum: "2026-10-19", izmene: [
       "Riftbound kolekcija je i na webu (gomez021ns-jpg.github.io/undergrand-aplikacije): svako može da vodi svoju kolekciju - čuva se u njegovom pregledaču i kreće prazna, sa cenama od poslednje objave sajta. Tvoja kolekcija se ne objavljuje i kod tebe sve radi kao do sada.",
     ] },

@@ -4,7 +4,7 @@
   const DOMAINS = ["Fury", "Calm", "Mind", "Body", "Chaos", "Order"];
   const DCOL = { Fury: "var(--fury)", Calm: "var(--calm)", Mind: "var(--mind)", Body: "var(--body)", Chaos: "var(--chaos)", Order: "var(--order)" };
   const API = "https://api.riftcodex.com";
-  const K_COLL = "rb-kolekcija", K_COLL_T = "rb-kolekcija-vreme", K_THEME = "rb-theme", K_TAB = "rb-tab-v2";
+  const K_COLL = "rb-kolekcija", K_COLL_T = "rb-kolekcija-vreme", K_THEME = "rb-theme", K_TAB = "rb-tab-v2", K_SORT = "rb-coll-sort";
   const DB_TTL = 7 * 864e5; // baza karata se osvežava jednom nedeljno
   const DB_VER = 2;         // oblik karte u kešu (2: tekst sa simbolima, TCGplayer broj); promena → baza se ponovo preuzima
 
@@ -36,7 +36,8 @@
   let COLL = {};          // kod → broj primeraka
   let UNRESOLVED = [];
   const state = { tab: store.get(K_TAB) || "coll", legend: null, q: "", dom: new Set(), type: "", set: "", mine: true, limit: 120, addQ: "", addSet: "", addLimit: 30,
-    cset: "", csort: "num", crar: "", climit: 60 };
+    cset: "", csort: "num", crar: "", climit: 60,
+    sort: (store.get(K_SORT) || {}).s || "set", desc: !!(store.get(K_SORT) || {}).d };
 
   /* ============ tema (kao u ostalim aplikacijama) ============ */
   const themeBtn = $("#theme-btn");
@@ -78,7 +79,7 @@
     };
   }
   function indexDB(cards) {
-    ALL = cards; UNIT = null;
+    ALL = cards; UNIT = null; DECKS = null;
     const best = new Map(); // po kodu, prednost ne-alt verziji
     for (const c of cards) { if (!c.code) continue; const prev = best.get(c.code); if (!prev || (prev.alt && !c.alt)) best.set(c.code, c); }
     const byN = new Map();  // jedna karta po imenu + tipu (overnumbered / starter / alt se spajaju)
@@ -288,12 +289,12 @@
     const legs = DB.filter((c) => isLegend(c) && COLL[c.code] > 0).length;
     $("#stats").innerHTML = `<span><b>${vals.filter((q) => q > 0).length}</b> različitih</span><span><b>${vals.reduce((a, b) => a + b, 0)}</b> ukupno</span><span><b>${legs}</b> legendi</span>${saveWarn ? `<button type="button" class="save-warn" data-tab="backup" title="${esc(saveStateMessage)}">Čuvanje u folder ne radi</button>` : ""}`;
   }
-  function tileHTML(c, { qty, ctl, cls = "", tag } = {}) {
+  function tileHTML(c, { qty, ctl, cls = "", tag, price } = {}) {
     const own = COLL[c.code] || 0;
     const land = c.or === "landscape" || isBF(c);
     return `<div class="tile ${land ? "land" : ""} ${cls}" data-code="${c.code}">
       <div class="img" data-open="${c.code}" title="${esc(c.name)}">${c.img ? `<img loading="lazy" src="${esc(c.img)}" alt="${esc(c.name)}" onerror="this.remove()">` : ""}<div class="ph">${esc(c.name)}</div>
-        ${qty ? `<span class="qty">${qty}×</span>` : ""}${ctl && own ? `<span class="badge">${own}</span>` : ""}${tag ? `<span class="tag">${tag}</span>` : ""}</div>
+        ${qty ? `<span class="qty">${qty}×</span>` : ""}${ctl && own ? `<span class="badge">${own}</span>` : ""}${tag ? `<span class="tag">${tag}</span>` : ""}${price != null ? `<span class="tag price">${usd(price)}</span>` : ""}</div>
       ${ctl ? `<div class="ctl"><button class="btn" data-d="-1" aria-label="Manje">−</button><span class="n">${own}</span><button class="btn" data-d="1" aria-label="Više">+</button><span class="nm" title="${esc(c.name)}">${esc(c.name)}</span></div>`
             : `<div class="nm" title="${esc(c.name)}">${esc(c.name)}</div>`}
     </div>`;
@@ -351,7 +352,78 @@
       return true;
     }).sort((a, b) => a.set.localeCompare(b.set) || a.code.localeCompare(b.code));
   }
+  // „Ređaj po“ u Mojoj kolekciji (od 1.6.0). desc = podrazumevani smer kad se izabere; dugme ↑/↓ ga obrne.
+  const SORTS = {
+    set: { n: "Set i broj", desc: false },
+    name: { n: "Ime", desc: false },
+    energy: { n: "Energija", desc: false },
+    might: { n: "Might", desc: true },
+    deck: { n: "Kupljeni špil", desc: false },
+    qty: { n: "Broj primeraka", desc: true },
+    price: { n: "Cena", desc: true },
+    rar: { n: "Retkost", desc: true },
+  };
+  const RAR_RANK = { Common: 1, Uncommon: 2, Rare: 3, Promo: 4, Epic: 5, Showcase: 6 }; // za ređanje (RAR_ORDER je spisak za Kolekcionar)
+  // „Kupljeni špil“ samo za korisnikovu kolekciju (na webu i u paketu nema njegovih špilova); cena samo kad cene mogu da stignu
+  const sortAvail = (k) => (k !== "deck" || !NOSEED) && (k !== "price" || SERVER || WEB);
+  const saveSort = () => store.set(K_SORT, { s: state.sort, d: state.desc });
+  let DECKS = null; // kod karte → indeksi kupljenih špilova (PRECONS) u kojima je
+  function deckMap() {
+    if (DECKS) return DECKS;
+    DECKS = new Map();
+    PRECONS.forEach((d, i) => {
+      for (const [, code, name] of d.cards) {
+        const c = resolve(code, name); if (!c) continue;
+        const a = DECKS.get(c.code) || []; if (!a.includes(i)) a.push(i);
+        DECKS.set(c.code, a);
+      }
+    });
+    return DECKS;
+  }
+  // spisak → grupe { h: naslov ili null, cards }; karte bez vrednosti (runa nema energiju, spel nema Might…) idu u grupu na kraju
+  function sortedGroups(list) {
+    const dir = state.desc ? -1 : 1;
+    const byName = (a, b) => a.name.localeCompare(b.name);
+    const bySet = (a, b) => a.set.localeCompare(b.set) || a.code.localeCompare(b.code);
+    const groupBy = (keyOf, label, emptyLabel) => {
+      const m = new Map(), none = [];
+      for (const c of list) { const k = keyOf(c); if (k == null) none.push(c); else { if (!m.has(k)) m.set(k, []); m.get(k).push(c); } }
+      const groups = [...m].sort((a, b) => (a[0] - b[0]) * dir).map(([k, cards]) => ({ h: label(k), cards: cards.sort(byName) }));
+      if (none.length) groups.push({ h: emptyLabel, cards: none.sort(byName) });
+      return groups;
+    };
+    switch (state.sort) {
+      case "name": return [{ h: null, cards: list.sort((a, b) => byName(a, b) * dir) }];
+      case "energy": return groupBy((c) => c.e ?? null, (k) => `Energija ${k}`, "Bez energije (legende, rune, bojna polja…)");
+      case "might": return groupBy((c) => c.m ?? null, (k) => `Might ${k}`, "Bez Might-a (spelovi, oprema, rune…)");
+      case "rar": return groupBy((c) => RAR_RANK[c.rar] ?? null, (k) => Object.keys(RAR_RANK).find((r) => RAR_RANK[r] === k), "Bez retkosti");
+      case "qty": return [{ h: null, cards: list.sort((a, b) => ((COLL[a.code] || 0) - (COLL[b.code] || 0)) * dir || byName(a, b)) }];
+      case "price": {
+        const U = unitPrices(), pv = (c) => U.get(c.code)?.v;
+        const has = list.filter((c) => pv(c) != null).sort((a, b) => (pv(a) - pv(b)) * dir || byName(a, b));
+        const none = list.filter((c) => pv(c) == null).sort(byName);
+        return [{ h: null, cards: has }, ...(none.length ? [{ h: "Bez cene na TCGplayer-u", cards: none }] : [])];
+      }
+      case "deck": {
+        // karta iz više špilova (npr. Origins karte) pojavi se u svakom od njih
+        const D = deckMap(), groups = PRECONS.map((d) => ({ h: d.product, cards: [] })), rest = [];
+        for (const c of list) { const ix = D.get(c.code); if (ix) ix.forEach((i) => groups[i].cards.push(c)); else rest.push(c); }
+        const out = groups.filter((g) => g.cards.length);
+        for (const g of out) g.cards.sort((a, b) => (a.e ?? 99) - (b.e ?? 99) || byName(a, b));
+        if (rest.length) out.push({ h: "Iz boostera i ostalo", cards: rest.sort(bySet) });
+        return out;
+      }
+      default: return [{ h: null, cards: list.sort((a, b) => bySet(a, b) * dir) }];
+    }
+  }
+  function syncSortUI() {
+    const b = $("#sort-dir"); if (!b) return;
+    b.hidden = state.sort === "deck"; // špilovi idu redom kojim su kupljeni
+    b.textContent = state.sort === "name" ? (state.desc ? "Ž-A" : "A-Ž") : state.desc ? "↓" : "↑";
+    b.title = (state.desc ? "Od najvećeg ka najmanjem" : "Od najmanjeg ka najvećem") + " - klikni za obrnuto";
+  }
   function renderColl() {
+    if (!sortAvail(state.sort)) { state.sort = "set"; state.desc = false; }
     const types = [...new Set(DB.map((c) => c.type).filter(Boolean))].sort();
     const sets = [...new Map(DB.map((c) => [c.set, c.setl])).entries()].filter((x) => x[0]).sort();
     const totalCards = Object.values(COLL).reduce((a, n) => a + (Number(n) || 0), 0);
@@ -368,6 +440,7 @@
           <div><span class="label">Domen</span><div class="chips">${DOMAINS.map((d) => `<button class="chip" data-dom="${d}" aria-pressed="${state.dom.has(d)}"><i class="dot" style="background:${DCOL[d]}"></i>${d}</button>`).join("")}</div></div>
           <div><label class="label" for="type">Tip</label><select id="type"><option value="">Svi tipovi</option>${types.map((t) => `<option ${t === state.type ? "selected" : ""}>${esc(t)}</option>`).join("")}</select></div>
           <div><label class="label" for="set">Set</label><select id="set"><option value="">Svi setovi</option>${sets.map(([k, l]) => `<option value="${esc(k)}" ${k === state.set ? "selected" : ""}>${esc(l || k)} (${esc(k)})</option>`).join("")}</select></div>
+          <div><label class="label" for="sort">Ređaj po</label><div class="sort-row"><select id="sort">${Object.entries(SORTS).filter(([k]) => sortAvail(k)).map(([k, o]) => `<option value="${k}" ${k === state.sort ? "selected" : ""}>${o.n}</option>`).join("")}</select><button type="button" class="btn sort-dir" id="sort-dir"></button></div></div>
         </div>
         <div class="coll-main"><div class="collection-list-head"><h2>Karte u tvojoj kolekciji</h2><span class="hint">Broj primeraka menjaš pomoću − / +</span></div><div id="grid" class="grid"></div><div class="more" id="more"></div></div>
       </div></div>`;
@@ -422,9 +495,25 @@
     </div>`).join("")}</div>${list.length > state.addLimit ? `<button class="btn" id="add-more">Prikaži još (${list.length - state.addLimit})</button>` : `<span class="hint">Prikazano ${shown.length} od ${list.length} karata.</span>`}` : `<p class="hint">Nema karata koje odgovaraju pretrazi.</p>`;
   }
   function renderGrid() {
-    const list = filtered();
-    $("#grid").innerHTML = list.slice(0, state.limit).map((c) => tileHTML(c, { ctl: true, cls: COLL[c.code] > 0 ? "" : "unowned" })).join("") || `<p class="hint">Nema karata za ovaj filter.</p>`;
-    $("#more").innerHTML = list.length > state.limit ? `<button class="btn" id="morebtn">Prikaži još (${list.length - state.limit})</button>` : `<span class="hint">${list.length} karata</span>`;
+    const grid = $("#grid"); if (!grid) return;
+    syncSortUI();
+    if (state.sort === "price" && !PRICES) {
+      grid.innerHTML = '<p class="hint">Učitavam cene…</p>'; $("#more").innerHTML = "";
+      loadPrices().then(() => renderGrid(), () => { if ($("#grid")) $("#grid").innerHTML = '<p class="hint">Cene trenutno nisu dostupne, pa karte ne mogu da se poređaju po ceni.</p>'; });
+      return;
+    }
+    const groups = sortedGroups(filtered());
+    const total = groups.reduce((a, g) => a + g.cards.length, 0);
+    const U = state.sort === "price" ? unitPrices() : null;
+    let left = state.limit, html = "";
+    for (const g of groups) {
+      if (left <= 0) break;
+      if (g.h) html += `<div class="grid-h"><span class="label">${esc(g.h)} · ${g.cards.length} ${kartaWord(g.cards.length)}</span></div>`;
+      html += g.cards.slice(0, left).map((c) => tileHTML(c, { ctl: true, cls: COLL[c.code] > 0 ? "" : "unowned", price: U ? U.get(c.code)?.v : null })).join("");
+      left -= g.cards.length;
+    }
+    grid.innerHTML = html || `<p class="hint">Nema karata za ovaj filter.</p>`;
+    $("#more").innerHTML = total > state.limit ? `<button class="btn" id="morebtn">Prikaži još (${total - state.limit})</button>` : `<span class="hint">${total} ${kartaWord(total)}</span>`;
   }
   function renderBackup() {
     $("#app").innerHTML = `<div class="backup">
@@ -740,13 +829,17 @@
     if (t.dataset.leg) { state.legend = t.dataset.leg; renderDeck(); window.scrollTo({ top: 0 }); return; }
     if (t.dataset.dom) { state.dom.has(t.dataset.dom) ? state.dom.delete(t.dataset.dom) : state.dom.add(t.dataset.dom); state.limit = 120; renderColl(); return; }
     if (t.dataset.d) {
-      const tile = t.closest(".tile"), code = tile.dataset.code;
+      const code = t.closest(".tile").dataset.code;
       COLL[code] = Math.max(0, (COLL[code] || 0) + +t.dataset.d); if (!COLL[code]) delete COLL[code];
       saveColl();
       const n = COLL[code] || 0;
-      tile.querySelector(".n").textContent = n; tile.classList.toggle("unowned", !n);
-      const img = tile.querySelector(".img"); let b = img.querySelector(".badge");
-      if (n) { if (!b) { b = document.createElement("span"); b.className = "badge"; img.append(b); } b.textContent = n; } else if (b) b.remove();
+      // ista karta može da bude prikazana više puta (Kupljeni špil) - osveži svaku
+      for (const tile of document.querySelectorAll(`.tile[data-code="${CSS.escape(code)}"]`)) {
+        const nEl = tile.querySelector(".n"); if (!nEl) continue;
+        nEl.textContent = n; tile.classList.toggle("unowned", !n);
+        const img = tile.querySelector(".img"); let b = img.querySelector(".badge");
+        if (n) { if (!b) { b = document.createElement("span"); b.className = "badge"; img.append(b); } b.textContent = n; } else if (b) b.remove();
+      }
       return;
     }
     if (t.dataset.open) { openCard(t.dataset.open); return; }
@@ -767,6 +860,7 @@
     }
     if (t.id === "add-more") { state.addLimit += 30; renderAddResults(); return; }
     if (t.id === "morebtn") { state.limit += 120; renderGrid(); return; }
+    if (t.id === "sort-dir") { state.desc = !state.desc; saveSort(); state.limit = 120; renderGrid(); return; }
     if (t.id === "open-save") { fetch("/api/otvori-save", { method: "POST" }).catch(() => {}); return; }
     if (t.id === "bkcopy") { const ta = $("#bk"); try { await navigator.clipboard.writeText(ta.value); $("#bkmsg").textContent = "Kopirano."; } catch { ta.select(); $("#bkmsg").textContent = "Označeno - pritisni Ctrl+C."; } return; }
     if (t.id === "bkload") {
@@ -806,6 +900,7 @@
     if (id === "mine") state.mine = e.target.checked;
     else if (id === "type") state.type = e.target.value;
     else if (id === "set") state.set = e.target.value;
+    else if (id === "sort") { state.sort = e.target.value; state.desc = SORTS[state.sort].desc; saveSort(); }
     else return;
     state.limit = 120; renderGrid();
   });
