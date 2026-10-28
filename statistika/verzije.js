@@ -5,6 +5,9 @@
 // Istorija stare Python aplikacije (0.1–2.6.0) je u js/istorija.js i prikazuje se u prozoru HISTORY.
 (() => {
   const VERZIJE = [
+    { v: "3.3.5", datum: "2026-10-28", izmene: [
+      "Novi naziv aplikacije: UnderGRAND statistika poseta (u naslovu prozora, zaglavlju i na prečici na desktopu).",
+    ] },
     { v: "3.3.4", datum: "2026-10-14", izmene: [
       "Nova ikonica u stilu ostalih UnderGRAND aplikacija: UG sa narandžastim krugovima na tamnoj pločici sa narandžastim okvirom (i na prečici na desktopu i na kartici pregledača).",
     ] },

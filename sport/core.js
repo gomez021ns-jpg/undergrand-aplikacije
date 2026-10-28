@@ -160,6 +160,17 @@ window.SC = (() => {
     <span>Proveri internet vezu i pokušaj ponovo. (${esc(err?.message || err)})</span>
     <button class="btn" type="button" onclick="SC.reload()">Pokušaj ponovo</button></div>`;
 
+  // ------------------------------------------------------------ lideri (top 10 po kategoriji)
+  // rows: [{ img, name, team, teamLogo, value, sub }]; prvo mesto je istaknuto.
+  function leaderBoard(title, rows) {
+    if (!rows.length) return "";
+    return `<section class="lb"><h3>${esc(title)}</h3><ol>${rows.map((r, i) => `
+      <li class="${i === 0 ? "first" : ""}"><span class="lb-rank">${i + 1}</span>
+        ${r.img ? `<img class="lb-img" src="${esc(r.img)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span class="lb-img"></span>`}
+        <span class="lb-who"><b>${esc(r.name)}</b><small>${r.teamLogo ? logo(r.teamLogo, r.team) : ""}${esc(r.team || "")}${r.sub ? ` · ${esc(r.sub)}` : ""}</small></span>
+        <span class="lb-val">${esc(r.value)}</span></li>`).join("")}</ol></section>`;
+  }
+
   // ------------------------------------------------------------ detalji utakmice (prozor)
   // registerDetail(ligaId, render(el, eventId) → { live }); kartica dobija g.detail = "ligaId:eventId".
   const detailRenderers = new Map();
@@ -211,7 +222,7 @@ window.SC = (() => {
 
   return {
     leagues, registerLeague, getJSON, esc, cap, fmt, relDay, dayHeading, when, logo,
-    gameCard, gamesByDay, overviewGames, table, select, pager, loading, errorBox, registerDetail, openDetail,
+    gameCard, gamesByDay, overviewGames, table, select, pager, loading, errorBox, registerDetail, openDetail, leaderBoard,
     reload: () => window.dispatchEvent(new HashChangeEvent("hashchange")),
   };
 })();

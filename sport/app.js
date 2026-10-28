@@ -55,12 +55,12 @@
       subbar.className = `subbar${route.league.visual ? ` vis v-${route.league.visual}` : ""}`;
       subbar.innerHTML = `<div class="wrap subbar-in"><h1>${esc(route.league.name)}</h1><nav class="tabs">${route.league.tabs.map((t) =>
         `<a href="#/${route.league.id}/${t.id}" class="${t === route.tab ? "active" : ""}">${esc(t.label)}</a>`).join("")}</nav></div>`;
-      document.title = `${route.league.name} · Sportski centar`;
+      document.title = `${route.league.name} · UnderGRAND Sport`;
     } else {
       document.body.style.removeProperty("--acc");
       subbar.className = "subbar";
       subbar.innerHTML = "";
-      document.title = "Sportski centar";
+      document.title = "UnderGRAND Sport";
     }
     const sources = route.league ? [route.league.source] : leagues.map((l) => l.source);
     const uniq = [...new Map(sources.map((s) => [s.label, s])).values()];

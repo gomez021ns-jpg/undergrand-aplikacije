@@ -136,7 +136,7 @@ td.b { font-weight: 700; } td.miss { color: ${P.acc}; font-weight: 700; }
 <div class="hd"><img src="assets/logo.png" alt="UnderGRAND"><div class="r"><div class="t">${esc(head)}</div>
 <div class="d">${esc(range)}</div>${note ? `<div class="n">${esc(note)}</div>` : ""}</div></div>
 <div class="body">${body}</div>
-<div class="ft"><span>Napravljeno ${U.fmtDate(U.mkDate(g.getFullYear(), g.getMonth() + 1, g.getDate()), "%d.%m.%Y.")} ${String(g.getHours()).padStart(2, "0")}:${String(g.getMinutes()).padStart(2, "0")} · UnderGRAND Statistika v${esc(version)}</span><span>Strana 1 / 1</span></div>
+<div class="ft"><span>Napravljeno ${U.fmtDate(U.mkDate(g.getFullYear(), g.getMonth() + 1, g.getDate()), "%d.%m.%Y.")} ${String(g.getHours()).padStart(2, "0")}:${String(g.getMinutes()).padStart(2, "0")} · UnderGRAND statistika poseta v${esc(version)}</span><span>Strana 1 / 1</span></div>
 </div></body></html>`;
   }
 
@@ -191,7 +191,7 @@ td.b { font-weight: 700; } td.miss { color: ${P.acc}; font-weight: 700; }
   function zenoTxt(d) {
     const { period, stats, weeks, n } = d, { count, users, sessions, hours, changes, prev } = stats;
     const ch = (c) => (c === null ? "-" : `${U.trendArrow(U.trendDirection(c))} ${U.fmtPct(c)}`);
-    const lines = ["UNDERGRAND STATISTIKA", `Zeno - ${d.name}`,
+    const lines = ["UNDERGRAND STATISTIKA POSETA", `Zeno - ${d.name}`,
       `Period: ${U.fmtDate(period.start, "%d.%m.%Y.")} – ${U.fmtDate(period.end, "%d.%m.%Y.")} (izveštaja: ${count >= n ? count : `${count} od ${n}`})`, "",
       `Prosek users: ${U.fmtDec(users / count, 1)}`, `Sessions: ${U.fmtInt(sessions)}`,
       `Slušanje: ${U.fmtHours(hours)} (prosek po nedelji: ${U.fmtHours(hours / count)})`, `Prosečna sesija: ${U.fmtSession(hours, sessions)}`];
@@ -223,7 +223,7 @@ td.b { font-weight: 700; } td.miss { color: ${P.acc}; font-weight: 700; }
 
   // Običan TXT izveštaj (kao u staroj verziji).
   function txt(s) {
-    const lines = ["UNDERGRAND STATISTIKA", `Nedelja od ${U.fmtDate(s.monday, "%d.%m.%Y.")}`, "",
+    const lines = ["UNDERGRAND STATISTIKA POSETA", `Nedelja od ${U.fmtDate(s.monday, "%d.%m.%Y.")}`, "",
       `Ukupno: ${U.fmtInt(s.total)}`, `Dnevni prosek: ${U.fmtInt(s.avg)}`, ""];
     s.vals.forEach((v, i) => {
       lines.push(`${U.DAYS[i].padEnd(10)} ${U.fmtDate(U.addDays(s.monday, i))}  ${v !== null ? U.fmtInt(v) : "-"}`);

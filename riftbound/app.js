@@ -4,7 +4,7 @@
   const DOMAINS = ["Fury", "Calm", "Mind", "Body", "Chaos", "Order"];
   const DCOL = { Fury: "var(--fury)", Calm: "var(--calm)", Mind: "var(--mind)", Body: "var(--body)", Chaos: "var(--chaos)", Order: "var(--order)" };
   const API = "https://api.riftcodex.com";
-  const K_COLL = "rb-kolekcija", K_COLL_T = "rb-kolekcija-vreme", K_THEME = "rb-theme", K_TAB = "rb-tab-v2", K_SORT = "rb-coll-sort";
+  const K_COLL = "rb-kolekcija", K_COLL_T = "rb-kolekcija-vreme", K_THEME = "rb-theme", K_TAB = "rb-tab-v2", K_SORT = "rb-coll-sort", K_FX = "rb-efekat";
   const DB_TTL = 7 * 864e5; // baza karata se osvežava jednom nedeljno
   const DB_VER = 2;         // oblik karte u kešu (2: tekst sa simbolima, TCGplayer broj); promena → baza se ponovo preuzima
 
@@ -35,7 +35,7 @@
   let BYNAME = new Map(); // nameKey → karta
   let COLL = {};          // kod → broj primeraka
   let UNRESOLVED = [];
-  const state = { tab: store.get(K_TAB) || "coll", legend: null, q: "", dom: new Set(), type: "", set: "", mine: true, limit: 120, addQ: "", addSet: "", addLimit: 30,
+  const state = { tab: store.get(K_TAB) || "coll", legend: null, q: "", dom: new Set(), type: "", set: "", mine: true, limit: 120, addQ: "", addSet: "", addLimit: 30, impText: "",
     cset: "", csort: "num", crar: "", climit: 60,
     sort: (store.get(K_SORT) || {}).s || "set", desc: !!(store.get(K_SORT) || {}).d };
 
@@ -48,6 +48,16 @@
   function themeIcon() { const l = isDark() ? "Svetla tema" : "Tamna tema"; themeBtn.innerHTML = isDark() ? SUN : MOON; themeBtn.title = l; themeBtn.setAttribute("aria-label", l); }
   applyTheme(store.get(K_THEME)); themeIcon();
   themeBtn.addEventListener("click", () => { const t = isDark() ? "light" : "dark"; applyTheme(t); store.set(K_THEME, t); themeIcon(); });
+
+  /* ============ efekat na slikama (od 1.6.2): crno-bele zrnaste karte, boja na prelaz mišem; prekidač u zaglavlju ============ */
+  const fxBtn = $("#fx-btn");
+  function applyFx(on) {
+    document.documentElement.classList.toggle("fx-off", !on);
+    fxBtn.setAttribute("aria-pressed", String(on));
+    fxBtn.title = on ? "Efekat na slikama je uključen (crno-bele karte, boja kad pređeš mišem) - klikni da isključiš" : "Efekat na slikama je isključen (karte su u boji) - klikni da uključiš";
+  }
+  applyFx(store.get(K_FX) !== false);
+  fxBtn.addEventListener("click", () => { const on = document.documentElement.classList.contains("fx-off"); applyFx(on); store.set(K_FX, on); });
 
   /* ============ baza karata ============ */
   async function loadDB(force) {
@@ -81,7 +91,15 @@
   function indexDB(cards) {
     ALL = cards; UNIT = null; DECKS = null;
     const best = new Map(); // po kodu, prednost ne-alt verziji
-    for (const c of cards) { if (!c.code) continue; const prev = best.get(c.code); if (!prev || (prev.alt && !c.alt)) best.set(c.code, c); }
+    // Ista karta bez slova u broju ima prednost nad onom sa slovom: riftcodex npr. „ven-110a-166 Mel, Defiant Soul“
+    // (alternativni crtež) ne označi kao alt, pa se prikazivao pogrešan crtež (1.7.1). Samo za isto ime: u promo
+    // setovima pod istim kodom zna da bude druga karta (opp-007 / opp-007b), i ta veza kod → karta mora da ostane.
+    const sfx = (c) => /\d[a-z]+$/.test(String(c.rid || "").toLowerCase().split("-")[1] || "");
+    for (const c of cards) {
+      if (!c.code) continue;
+      const prev = best.get(c.code);
+      if (!prev || (prev.alt && !c.alt) || (!prev.alt && !c.alt && sfx(prev) && !sfx(c) && nameKey(prev.name) === nameKey(c.name))) best.set(c.code, c);
+    }
     const byN = new Map();  // jedna karta po imenu + tipu (overnumbered / starter / alt se spajaju)
     for (const c of best.values()) {
       // Token karte ostaju u bazi da bi mogle da se unesu u kolekciju.
@@ -96,6 +114,42 @@
     // kolekcija sa kodovima alt verzija → glavna verzija
     for (const [k, v] of Object.entries(COLL)) { const c = BY.get(k); if (c && c.code !== k) { COLL[c.code] = (COLL[c.code] || 0) + v; delete COLL[k]; } }
   }
+  /* ============ dopunske karte sa TCGplayer-a (od 1.8.0) ============ */
+  // Riftcodex nema sve karte (Vendetta tokeni kao „Shadow Clone // Tentacle“ VEN-T05, ceo set Radiance…).
+  // Server uz cene šalje sažet spisak TCGplayer karata (PRICES.karte); ovde se od njega naprave karte istog oblika
+  // kao `slim`, ali SAMO za kod i ime kojih riftcodex nema - postojeće karte i njihovi kodovi se nikad ne menjaju.
+  let RC = []; // karte sa riftcodex-a (bez dopune)
+  let EXTRA_N = 0;
+  const TCG_TYPE = { "Champion Unit": ["Unit", "Champion"], "Signature Spell": ["Spell", "Signature"], "Signature Gear": ["Gear", "Signature"], "Signature Unit": ["Unit", "Signature"] };
+  function extraCards() {
+    const list = PRICES && PRICES.karte; if (!list || !list.length) return [];
+    const codes = new Set(RC.map((c) => c.code)), names = new Set(RC.map((c) => nameKey(c.name)));
+    const num = (v) => { const n = parseInt(String(v ?? "").split("//")[0], 10); return Number.isFinite(n) ? n : null; };
+    const strip = (h) => String(h || "").replace(/<[^>]*>?/g, " ").replace(/\s+/g, " ").trim();
+    const out = [];
+    for (const k of list) {
+      const [first, total] = String(k.no || "").split("//")[0].split("/").map((x) => x.trim().replace(/\*/g, ""));
+      const rid = `${k.s}-${first}${total && /^\d+$/.test(total) ? "-" + total : ""}`.toLowerCase();
+      const code = baseCode(rid);
+      if (!/^[a-z0-9]{1,8}-[a-z0-9]{1,8}$/.test(code) || codes.has(code) || names.has(nameKey(k.n))) continue;
+      const parts = String(k.t || "").split(";").map((x) => x.trim());
+      const tx = String(k.tx || "").replace(/>\/(strong|em|b|i)>/gi, "</$1>"); // TCGplayer ponekad piše „:>/strong>“
+      const [type, sup] = TCG_TYPE[parts[0]] || [parts[0] || "", parts.includes("Token") ? "Token" : ""];
+      out.push({
+        rid, code, pc: `${k.s}-${first}`.toUpperCase(), name: k.n, type, sup, rar: k.r || "",
+        dom: String(k.d || "").split(";").map((x) => x.trim()).filter((d) => DOMAINS.includes(d)),
+        e: num(k.e), m: num(k.m), p: num(k.p), txt: strip(tx), rich: tx ? `<p>${tx}</p>` : "", fl: strip(k.fl),
+        // TCGplayer za neke karte nema sliku (ic = 0, npr. tokeni Mech // Buff, Mech // Recruit) - tada slika sa riftbound.gg (dotgg) po kodu
+        set: k.s, setl: k.sl || k.s, img: k.ic === 0 ? `https://static.dotgg.gg/riftbound/cards/${k.s.toUpperCase()}-${first}.webp` : String(k.img || "").replace(/_200w\.jpg$/, "_in_1000x1000.jpg"),
+        tags: String(k.tag || "").split(";").map((x) => x.trim()).filter(Boolean), or: type === "Battlefield" ? "landscape" : "portrait",
+        alt: /\(/.test(k.n) || /\d[a-z]+$/i.test(first) || (total && +first > +total) || false, tp: String(k.id), src: "tcg",
+      });
+    }
+    return out;
+  }
+  // baza = riftcodex + dopuna; ponovo kad stignu cene (spisak TCGplayer karata stiže sa njima)
+  function indexAll() { const ex = extraCards(); EXTRA_N = ex.length; indexDB(ex.length ? RC.concat(ex) : RC); }
+
   function resolve(code, name) {
     if (code) { const c = BY.get(code.toLowerCase()); if (c) return c; }
     return name ? BYNAME.get(nameKey(name)) || null : null;
@@ -446,6 +500,68 @@
       </div></div>`;
     renderGrid();
   }
+  /* ============ „Uvezi spisak“ (od 1.7.0): ceo špil ili kesica odjednom ============ */
+  // Jedna karta u redu: broj ispred ili iza (3 Jinx - Rebel, 3x …, OGN-042 x3, 6 Fury Rune), bez broja = 1.
+  // Karta se traži po kodu (OGN-042, ogn-42, VEN-034/166, UNL-R03a) ili po imenu (tolerantno: zarez ili crta,
+  // apostrofi, jedno slovo greške). Prazni redovi, komentari (# //) i naslovi („Main Deck:“) se preskaču.
+  let IMPORT = null, LAST_IMPORT = null; // IMPORT = { rows: [{ c, q }], bad: [red] }; LAST_IMPORT = { kod: broj } za „Poništi uvoz“
+  const CODE_RE = /^([a-z]{2,4})[-\s]?([a-z]{0,2}\d{1,3}[a-z]?)(?:\/\d+)?$/i;
+  function oneEdit(a, b) { // tačno ili najviše jedno slovo razlike (zamena, višak ili manjak)
+    if (Math.abs(a.length - b.length) > 1) return false;
+    let i = 0, j = 0, e = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; continue; }
+      if (++e > 1) return false;
+      if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+    }
+    return e + (a.length - i) + (b.length - j) <= 1;
+  }
+  function findByCode(t) {
+    const m = t.trim().match(CODE_RE); if (!m) return null;
+    const num = m[2].replace(/^([a-z]{0,2})(\d+)/i, (all, p, d) => p + (p ? d : d.padStart(3, "0")));
+    return BY.get(baseCode(`${m[1]}-${num}`)) || null;
+  }
+  function findByName(t) {
+    const k = nameKey(t); if (!k) return null;
+    if (BYNAME.has(k)) return BYNAME.get(k);
+    const ck = k.replace(/\s+/g, "");
+    const same = DB.find((c) => nameKey(c.name).replace(/\s+/g, "") === ck); if (same) return same;
+    // dvostrane karte (tokeni „Shadow Clone // Tentacle“) i po imenu jedne strane
+    const side = DB.find((c) => c.name.includes("//") && c.name.split("//").some((p) => nameKey(p) === k)); if (side) return side;
+    if (ck.length < 6) return null;
+    const near = DB.filter((c) => oneEdit(nameKey(c.name).replace(/\s+/g, ""), ck));
+    return near.length === 1 ? near[0] : null; // dve slične karte = nesigurno, bolje javiti
+  }
+  function parseImport(text) {
+    const sum = new Map(), bad = [];
+    for (const raw of String(text).split(/\r?\n/)) {
+      let line = raw.replace(/\s+/g, " ").trim();
+      if (!line || /^(#|\/\/)/.test(line) || /:$/.test(line)) continue;
+      let q = 1, m;
+      if ((m = line.match(/^(\d{1,3})\s*[x×]?\s+(.+)$/i))) { q = +m[1]; line = m[2]; }
+      else if ((m = line.match(/^(.+?)\s+[x×]\s*(\d{1,3})$/i) || line.match(/^(.+?)\s+(\d{1,3})\s*[x×]$/i))) { q = +m[2]; line = m[1]; }
+      // kod u zagradi uz ime: „Jinx - Rebel (OGN-202)“
+      const inner = line.match(/[([]\s*([a-z]{2,4}[-\s]?[a-z]{0,2}\d{1,3}[a-z]?(?:\/\d+)?)\s*[)\]]/i);
+      const c = (inner && findByCode(inner[1])) || findByCode(line) || findByName(line.replace(/[([][^)\]]*[)\]]/g, " "));
+      if (!c || q < 1) { bad.push(raw.trim()); continue; }
+      sum.set(c.code, { c, q: Math.min(999, (sum.get(c.code)?.q || 0) + q) });
+    }
+    return { rows: [...sum.values()], bad };
+  }
+  function importHTML() {
+    if (!IMPORT) return "";
+    const { rows, bad } = IMPORT;
+    const total = rows.reduce((a, r) => a + r.q, 0);
+    return `<div class="imp-sum">Prepoznato: <b>${total}</b> ${kartaWord(total)} (${rows.length} različitih)${bad.length ? ` · <span class="imp-badn">${bad.length} ${bad.length === 1 ? "red nije prepoznat" : "redova nije prepoznato"}</span>` : ""}</div>
+      ${bad.length ? `<div class="imp-bad"><b>Nisam prepoznao:</b><ul>${bad.map((l) => `<li>${esc(l)}</li>`).join("")}</ul><span class="hint">Ispravi ime ili kod u spisku pa ponovo klikni „Proveri spisak“. Ostale karte mogu da se dodaju i bez ovih.</span></div>` : ""}
+      ${rows.length ? `<div class="add-list">${rows.map(({ c, q }) => `<div class="add-row imp-row">
+        <div class="add-card-img">${c.img ? `<img loading="lazy" src="${esc(c.img)}" alt="">` : ""}</div>
+        <div class="add-card-name"><b>${esc(c.name)}</b><span>${esc(c.setl || c.set || "")} · ${esc((c.pc || c.code).toUpperCase())}</span><small>Imaš ${COLL[c.code] || 0} → posle uvoza <strong>${(COLL[c.code] || 0) + q}</strong></small></div>
+        <span class="imp-q">+${q}</span>
+        <button class="btn ghost" type="button" data-open="${esc(c.code)}">Pogledaj</button>
+      </div>`).join("")}</div>
+      <div class="row"><button class="btn primary" type="button" id="imp-add">Dodaj sve u kolekciju (${total})</button><button class="btn" type="button" id="imp-cancel">Odustani</button></div>` : ""}`;
+  }
   function renderAddPage() {
     const sets = [...new Map(DB.map((c) => [c.set, c.setl])).entries()].filter((x) => x[0]).sort();
     $("#app").innerHTML = `<div class="add-page">
@@ -456,6 +572,12 @@
           <label><span class="label">Izdanje</span><select id="add-set"><option value="">Sva izdanja</option>${sets.map(([k, l]) => `<option value="${esc(k)}" ${k === state.addSet ? "selected" : ""}>${esc(l || k)} (${esc(k)})</option>`).join("")}</select></label>
         </div>
         <div id="add-results" class="add-results"></div>
+      </section>
+      <section class="panel import-panel">
+        <div><h2>Uvezi spisak</h2><p class="hint">Za ceo špil, bundle ili kesicu odjednom: nalepi spisak (npr. sa sajta sa špilovima) ili ga ukucaj, jedna karta u redu. Broj može ispred ili iza karte, a karta se piše imenom ili kodom: <code>3 Jinx - Rebel</code>, <code>OGN-042 x3</code>, <code>6 Fury Rune</code>. Bez broja se računa 1. Prazni redovi i naslovi kao „Main Deck:“ se preskaču.</p></div>
+        <textarea id="imp-text" class="imp-text" spellcheck="false" placeholder="6 Fury Rune&#10;6 Calm Rune&#10;OGN-042 x3&#10;2 Jinx - Rebel">${esc(state.impText)}</textarea>
+        <div class="row"><button class="btn" type="button" id="imp-check">Proveri spisak</button><span class="hint" id="imp-msg"></span></div>
+        <div id="imp-preview" class="imp-preview">${importHTML()}</div>
       </section>
     </div>`;
     renderAddResults();
@@ -859,6 +981,31 @@
       return;
     }
     if (t.id === "add-more") { state.addLimit += 30; renderAddResults(); return; }
+    if (t.id === "imp-check") {
+      IMPORT = parseImport(state.impText);
+      $("#imp-preview").innerHTML = importHTML();
+      $("#imp-msg").textContent = IMPORT.rows.length || IMPORT.bad.length ? "" : "Spisak je prazan.";
+      return;
+    }
+    if (t.id === "imp-cancel") { IMPORT = null; $("#imp-preview").innerHTML = ""; $("#imp-msg").textContent = ""; return; }
+    if (t.id === "imp-add" && IMPORT) {
+      LAST_IMPORT = {};
+      let total = 0;
+      for (const { c, q } of IMPORT.rows) { COLL[c.code] = (COLL[c.code] || 0) + q; LAST_IMPORT[c.code] = q; total += q; }
+      const n = IMPORT.rows.length;
+      saveColl();
+      IMPORT = null; state.impText = "";
+      renderAddPage();
+      $("#imp-msg").innerHTML = `Dodato ${total} ${kartaWord(total)} (${n} različitih). <button class="btn ghost" type="button" id="imp-undo">Poništi uvoz</button>`;
+      return;
+    }
+    if (t.id === "imp-undo" && LAST_IMPORT) {
+      for (const [code, q] of Object.entries(LAST_IMPORT)) { COLL[code] = Math.max(0, (COLL[code] || 0) - q); if (!COLL[code]) delete COLL[code]; }
+      LAST_IMPORT = null;
+      saveColl(); renderAddResults();
+      $("#imp-msg").textContent = "Uvoz je poništen.";
+      return;
+    }
     if (t.id === "morebtn") { state.limit += 120; renderGrid(); return; }
     if (t.id === "sort-dir") { state.desc = !state.desc; saveSort(); state.limit = 120; renderGrid(); return; }
     if (t.id === "open-save") { fetch("/api/otvori-save", { method: "POST" }).catch(() => {}); return; }
@@ -885,13 +1032,14 @@
     }
     if (t.id === "refresh") {
       $("#rsmsg").textContent = "Osvežavam…";
-      try { indexDB(await loadDB(true)); saveColl(); $("#rsmsg").textContent = `Baza je osvežena: ${DB.length} karata.`; }
+      try { RC = await loadDB(true); indexAll(); saveColl(); $("#rsmsg").textContent = `Baza je osvežena: ${DB.length} karata.`; }
       catch (err) { $("#rsmsg").textContent = "Ne mogu da dohvatim bazu: " + err.message; }
     }
   });
   document.addEventListener("input", (e) => {
     if (e.target.id === "q") { state.q = e.target.value; state.limit = 120; renderGrid(); }
     else if (e.target.id === "add-q") { state.addQ = e.target.value; state.addLimit = 30; renderAddResults(); }
+    else if (e.target.id === "imp-text") { state.impText = e.target.value; if (IMPORT) { IMPORT = null; $("#imp-preview").innerHTML = ""; } }
   });
   document.addEventListener("change", (e) => {
     const id = e.target.id;
@@ -914,7 +1062,12 @@
     const localNewer = saved && (store.get(K_COLL_T) || 0) > (srv?.t || 0) + 2000;
     if (srv && srv.kolekcija && typeof srv.kolekcija === "object" && !localNewer) saved = srv.kolekcija;
     if (saved && typeof saved === "object") COLL = saved;
-    try { indexDB(await loadDB(false)); }
+    if (SERVER || WEB) loadPrices().then(() => { // dopunske karte stižu sa cenama
+      if (!RC.length || !(PRICES.karte || []).length || EXTRA_N) return;
+      indexAll();
+      if (EXTRA_N && DB.length && !$("#status")) { checkSeeds(); render(); }
+    }, () => {});
+    try { RC = await loadDB(false); if (PRICES) indexAll(); else indexDB(RC); }
     catch (err) {
       $("#status").innerHTML = `<p class="err">Ne mogu da učitam bazu karata sa riftcodex.com (${esc(err.message)}).</p><p class="hint">Proveri internet vezu pa osveži stranicu.</p>`;
       return;

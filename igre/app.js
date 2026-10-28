@@ -75,7 +75,7 @@
 
   // ───────────── početna: biblioteka ─────────────
   function renderHome() {
-    document.title = "Moje društvene igre";
+    document.title = "UnderGRAND Društvene igre";
     const sorted = [...window.GAMES].sort((a, b) => a.title.localeCompare(b.title, "sr"));
     // Igre sa liste želja (još nisu kupljene) idu u poseban odeljak i ne broje se u kolekciju
     const games = sorted.filter((g) => !g.wishlist);
@@ -548,7 +548,7 @@
 
     const parts = { quick: [quick], full: [full], expansions: [expansions], all: [quick, full, expansions] }[mode] || [quick];
     printRoot.innerHTML =
-      parts.filter(Boolean).join("") + `<footer class="p-foot">Odštampano ${esc(date)} · Moje društvene igre</footer>`;
+      parts.filter(Boolean).join("") + `<footer class="p-foot">Odštampano ${esc(date)} · UnderGRAND Društvene igre</footer>`;
     document.body.classList.add("printing");
 
     const prevTitle = document.title;

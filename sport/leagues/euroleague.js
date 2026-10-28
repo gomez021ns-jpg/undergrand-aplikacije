@@ -130,10 +130,31 @@
         `<li class="${cfg.zone(t.position)}"><span class="mt-pos">${t.position}</span>${logo(t.club.images?.crest, t.club.tvCode)}<span class="mt-name">${esc(t.club.abbreviatedName || t.club.name)}</span><span class="mt-val"><b>${t.gamesWon}-${t.gamesLost}</b></span></li>`).join("")}</ol>`;
     }
 
+    // Lideri sezone: zvanični Evroligin izvor (prosek po utakmici; procenti sa minimumom pokušaja).
+    const LEADERS = [["points", "Poeni"], ["rebounds", "Skokovi"], ["assists", "Asistencije"], ["pir", "Indeks (PIR)"],
+      ["steals", "Ukradene lopte"], ["blocks", "Blokade"], ["threePointersPercentage", "Šut za 3 %"], ["twoPointersPercentage", "Šut za 2 %"]];
+    const leadersData = () => getJSON(`${API}/v3/competitions/${cfg.comp}/statistics/players/leaders?seasonMode=Single&seasonCode=${season}&statisticMode=PerGame&limit=10`, 300000);
+    const num = (v) => (typeof v === "number" ? v.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : String(v ?? "").replace(".", ","));
+    const leaderRows = (list, n = 10) => (list || []).slice(0, n).map((x) => ({
+      img: x.details?.imageUrl, name: personName(x.details?.name), team: x.details?.team?.tvCodes || x.details?.team?.code,
+      teamLogo: x.details?.team?.imageUrl, value: num(x.average ?? x.value), sub: x.gamesPlayed ? `${x.gamesPlayed} ut.` : "",
+    }));
+
+    async function renderLeaders(el) {
+      const d = await leadersData();
+      const boards = LEADERS.map(([k, label]) => SC.leaderBoard(label, leaderRows(d[k]))).join("");
+      el.innerHTML = `<p class="hint">Sezona ${esc(season.slice(1))}-${String(+season.slice(-4) + 1).slice(2)} · prosek po utakmici · zvanični podaci Evrolige</p>`
+        + (boards ? `<div class="lb-grid">${boards}</div>` : `<p class="empty">Lideri će biti dostupni posle prvog kola.</p>`);
+      return {};
+    }
+
     async function overview(el) {
-      const [list, mini] = await Promise.all([games(), miniTable().catch(() => "")]);
+      const [list, mini, lead] = await Promise.all([games(), miniTable().catch(() => ""), leadersData().catch(() => null)]);
       const ov = overviewGames(list);
-      el.innerHTML = ov.html + (mini ? `<h4 class="ov-h">Tabela · <a href="#/${cfg.id}/tabela">cela</a></h4>${mini}` : "");
+      const scorers = leaderRows(lead?.points, 3);
+      el.innerHTML = ov.html + (mini ? `<h4 class="ov-h">Tabela · <a href="#/${cfg.id}/tabela">cela</a></h4>${mini}` : "")
+        + (scorers.length ? `<h4 class="ov-h">Najbolji strelci · <a href="#/${cfg.id}/lideri">lideri</a></h4><ol class="mini-tbl">${scorers.map((r, i) =>
+          `<li><span class="mt-pos">${i + 1}</span>${logo(r.teamLogo, r.team)}<span class="mt-name">${esc(r.name)}</span><span class="mt-val"><b>${esc(r.value)}</b> <small class="muted">poena</small></span></li>`).join("")}</ol>` : "");
       return { live: ov.live };
     }
 
@@ -144,6 +165,7 @@
       tabs: [
         { id: "utakmice", label: "Raspored i rezultati", render: renderGames },
         { id: "tabela", label: "Tabela", render: renderStandings },
+        { id: "lideri", label: "Lideri", render: renderLeaders },
       ],
       overview,
     });
@@ -164,7 +186,10 @@
   // "HIFI, NADIR" → "Nadir Hifi"
   const personName = (s) => {
     const [last, first] = String(s || "").split(",").map((x) => x.trim());
-    const tc = (w) => w.toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
+    // Inicijali bez samoglasnika (TJ, CJ) i rimski brojevi (II, IV) ostaju velikim slovima; JR/SR → Jr/Sr.
+    const word = (w) => (/^(I{2,3}|IV|VI{0,3})$/.test(w) || (/^[A-Z]{2,3}$/.test(w) && !/[AEIOUY]/.test(w) && !/^(JR|SR)$/.test(w))
+      ? w : w.toLowerCase().replace(/(^|['-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()));
+    const tc = (s) => s.split(/\s+/).filter(Boolean).map(word).join(" ");
     return first ? `${tc(first)} ${tc(last)}` : tc(last);
   };
   const pct = (m, a) => (a ? `${m}/${a} (${Math.round((100 * m) / a)}%)` : `${m}/${a}`);

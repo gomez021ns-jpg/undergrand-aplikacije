@@ -51,7 +51,7 @@ a:hover { text-decoration: underline; }
 .ug-sep { width: 2px; align-self: stretch; margin: 8px 0; background: var(--line); border-radius: 1px; }
 .ug-title { flex: 1; min-width: 0; }
 .ug-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.ug-name { font-size: 26px; font-weight: 800; letter-spacing: 5px; line-height: 1.1; color: var(--text); }
+.ug-name { font-size: 26px; font-weight: 800; letter-spacing: 5px; line-height: 1.1; color: var(--text); white-space: nowrap; }
 .ug-slogan { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
 .ug-ver { color: var(--brand-text); background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font: inherit; font-size: 11px; font-weight: 800; letter-spacing: 1px; cursor: pointer; }
 .ug-ver:hover { border-color: var(--brand); }
@@ -63,6 +63,11 @@ a:hover { text-decoration: underline; }
 .fs-btn { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
 .fs-btn:hover { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
 .fs-btn svg { width: 16px; height: 16px; flex: none; }
+/* prekidač „Efekat“ (efekat na slikama karata): uključen = narandžasta tačka */
+.fx-btn { height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.fx-btn:hover { border-color: var(--brand); }
+.fx-ico { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); background: transparent; transition: background .2s, border-color .2s; }
+.fx-btn[aria-pressed="true"] .fx-ico { border-color: var(--brand); background: linear-gradient(90deg, #f1efea 50%, #2e3439 50%); box-shadow: 0 0 0 2px color-mix(in oklab, var(--brand) 35%, transparent); }
 @media (max-width: 520px) { .fs-btn { width: 38px; padding: 0; justify-content: center; } .fs-txt { display: none; } }
 @media (max-width: 760px) {
   .ug-top-inner { gap: 10px; flex-wrap: wrap; }
@@ -173,6 +178,17 @@ button, input, select { font: inherit; color: inherit; }
 .booster-tools input, .booster-tools select, .add-qty input { width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
 .booster-tools select option { background: var(--surface); color: var(--text); }
 .add-list { display: flex; flex-direction: column; gap: 8px; }
+/* „Uvezi spisak“ (od 1.7.0) */
+.imp-text { width: 100%; min-height: 150px; resize: vertical; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: 13.5px/1.55 var(--mono); }
+.imp-preview { display: flex; flex-direction: column; gap: 12px; }
+.imp-preview:empty { display: none; }
+.imp-sum { font-size: 14px; }
+.imp-sum b { color: var(--brand-text); font-family: var(--mono); }
+.imp-badn { color: var(--bad); font-weight: 700; }
+.imp-bad { padding: 10px 14px; border: 1px solid color-mix(in oklab, var(--bad) 50%, var(--line)); border-radius: 10px; background: color-mix(in oklab, var(--bad) 8%, var(--surface)); font-size: 13.5px; }
+.imp-bad ul { margin: 6px 0; padding-left: 20px; font-family: var(--mono); }
+.imp-q { font: 800 18px var(--mono); color: var(--brand-text); text-align: center; }
+.import-panel code { font-family: var(--mono); font-size: 12.5px; padding: 1px 5px; border-radius: 4px; background: var(--surface2); }
 .add-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) 86px auto; align-items: center; gap: 12px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
 .add-card-img { width: 42px; aspect-ratio: 744/1039; border-radius: 5px; overflow: hidden; background: var(--img-bg); }
 .add-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -370,9 +386,10 @@ button, input, select { font: inherit; color: inherit; }
 
 /* --- Karte u kolekciji: crno-bele i kontrastne, preko njih sitna zrnca (beli sloj + SVG filter #ug-tacke u index.html),
    na prelaz mišem se za 0,3 s pojave pune boje (od 1.6.1, korisnikova želja; uzor digthegig.live). Samo velike karte u
-   mreži (.tile .img); prozor karte i sličice ostaju u boji. --- */
-.tile .img img, .tile .img .ph { filter: grayscale(1) contrast(1.5); transition: filter .3s ease; }
-.tile .img::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #fff; filter: url(#ug-tacke); opacity: .5; transition: opacity .3s ease; }
-.tile .img:hover img, .tile .img:hover .ph { filter: grayscale(0) contrast(1); }
-.tile .img:hover::after { opacity: 0; }
+   mreži (.tile .img); prozor karte i sličice ostaju u boji. ---
+   Prekidač „Efekat“ u zaglavlju (od 1.6.2) isključuje ga klasom .fx-off na <html>. */
+:root:not(.fx-off) .tile .img img, :root:not(.fx-off) .tile .img .ph { filter: grayscale(1) contrast(1.5); transition: filter .3s ease; }
+:root:not(.fx-off) .tile .img::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #fff; filter: url(#ug-tacke); opacity: .5; transition: opacity .3s ease; }
+:root:not(.fx-off) .tile .img:hover img, :root:not(.fx-off) .tile .img:hover .ph { filter: grayscale(0) contrast(1); }
+:root:not(.fx-off) .tile .img:hover::after { opacity: 0; }
 .tile .img .tag, .tile .img .qty, .tile .img .badge { z-index: 2; }

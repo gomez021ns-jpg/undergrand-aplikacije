@@ -270,10 +270,33 @@
       }).join("");
     }
 
+    // Lideri sezone (ESPN leaders: top 10 po kategoriji). Samo kategorije koje ESPN računa sa minimumom
+    // utakmica - procenti i PER su na početku sezone besmisleni (npr. 100% za 3 iz jednog pokušaja).
+    async function leadersData() {
+      return getJSON(`https://site.api.espn.com/apis/site/v3/sports/${cfg.path}/leaders`, 300000);
+    }
+    const leaderRows = (c, n = 10) => (c?.leaders || []).slice(0, n).map((l) => ({
+      img: l.athlete?.headshot?.href, name: l.athlete?.displayName || "", team: l.team?.abbreviation || "",
+      teamLogo: l.team?.logos?.[0]?.href, value: String(l.displayValue ?? "").replace(".", ","),
+    }));
+
+    async function renderLeaders(el) {
+      const d = await leadersData();
+      const cats = d.leaders?.categories || [];
+      const boards = cfg.leaders.map(([name, label]) => SC.leaderBoard(label, leaderRows(cats.find((x) => x.name === name)))).join("");
+      el.innerHTML = `<p class="hint">Sezona ${esc(d.currentSeason?.displayName || "")} · prosek po utakmici · na početku sezone brojke se brzo menjaju</p>`
+        + (boards ? `<div class="lb-grid">${boards}</div>` : `<p class="empty">Lideri će biti dostupni kad počne regularni deo sezone.</p>`);
+      return {};
+    }
+
     async function overview(el) {
-      const [games, mini] = await Promise.all([overviewGamesList(), miniTable().catch(() => "")]);
+      const [games, mini, lead] = await Promise.all([overviewGamesList(), miniTable().catch(() => ""),
+        cfg.leaders ? leadersData().catch(() => null) : null]);
       const ov = overviewGames(games);
-      el.innerHTML = ov.html + (mini ? `<h4 class="ov-h">Tabela · <a href="#/${cfg.id}/tabela">cela</a></h4>${mini}` : "");
+      const scorers = lead ? leaderRows(lead.leaders?.categories?.find((x) => x.name === cfg.leaders[0][0]), 3) : [];
+      el.innerHTML = ov.html + (mini ? `<h4 class="ov-h">Tabela · <a href="#/${cfg.id}/tabela">cela</a></h4>${mini}` : "")
+        + (scorers.length ? `<h4 class="ov-h">Najbolji strelci · <a href="#/${cfg.id}/lideri">lideri</a></h4><ol class="mini-tbl">${scorers.map((r, i) =>
+          `<li><span class="mt-pos">${i + 1}</span>${logo(r.teamLogo, r.team)}<span class="mt-name">${esc(r.name)}</span><span class="mt-val"><b>${esc(r.value)}</b> <small class="muted">poena</small></span></li>`).join("")}</ol>` : "");
       return { live: ov.live };
     }
 
@@ -284,6 +307,7 @@
       tabs: [
         { id: "utakmice", label: "Raspored i rezultati", render: renderGames },
         { id: "tabela", label: "Tabela", render: renderStandings },
+        ...(cfg.leaders ? [{ id: "lideri", label: "Lideri", render: renderLeaders }] : []),
       ],
       overview,
     });
@@ -633,6 +657,8 @@
   espnLeague({
     id: "nba", name: "NBA", short: "NBA", accent: "#c8102e", icon: "🏀", visual: "nba",
     path: "basketball/nba", mode: "day", standingsParams: { seasontype: 2 }, detail: nbaDetail,
+    leaders: [["pointsPerGame", "Poeni"], ["reboundsPerGame", "Skokovi"], ["assistsPerGame", "Asistencije"], ["stealsPerGame", "Ukradene lopte"],
+      ["blocksPerGame", "Blokade"], ["3PointsMadePerGame", "Pogođene trojke"], ["doubleDouble", "Double-double (ukupno)"], ["minutesPerGame", "Minuti"]],
     sourceUrl: "https://www.espn.com/nba/",
     gameLabel: (e, c) => c.notes?.[0]?.headline || (e.season?.slug === "preseason" ? "Pripremna" : ""),
     groupName: (n) => n.replace("Eastern Conference", "Istočna konferencija").replace("Western Conference", "Zapadna konferencija"),

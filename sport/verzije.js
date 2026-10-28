@@ -4,6 +4,14 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.9.1", datum: "2026-10-28", izmene: [
+      "Novi naziv aplikacije: UnderGRAND Sport (u naslovu prozora i na prečici na desktopu).",
+    ] },
+    { v: "1.9.0", datum: "2026-10-27", izmene: [
+      "NBA i Evroliga: nova kartica „Lideri“ - top 10 igrača sezone po kategorijama, sa slikom igrača i ekipom. NBA: poeni, skokovi, asistencije, ukradene lopte, blokade, pogođene trojke, double-double i minuti. Evroliga (zvanični podaci): poeni, skokovi, asistencije, indeks (PIR), ukradene lopte, blokade, šut za 3 i za 2, uz broj odigranih utakmica.",
+      "Na Pregledu paneli NBA i Evrolige prikazuju i tri najbolja strelca, sa linkom ka svim liderima.",
+      "Evroliga: imena kao „TJ Shorts“ i „Wade Baldwin IV“ se sada pišu ispravno (i u Detaljima utakmice).",
+    ] },
     { v: "1.8.3", datum: "2026-10-14", izmene: [
       "Nova ikonica u stilu ostalih UnderGRAND aplikacija: narandžasta lopta na tamnoj pločici sa narandžastim okvirom (i na prečici na desktopu i na kartici pregledača).",
     ] },

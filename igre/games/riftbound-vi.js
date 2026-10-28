@@ -174,7 +174,7 @@ registerExpansion("riftbound", {
             <p class="small"><b>Legend:</b> Vi, Piltover Enforcer<br><b>Battlefields:</b> Star Spring, Trapping Grounds, Valley of Idols<br><b>Rune:</b> 6× Fury, 6× Order<br><b>Tokeni:</b> 4× Bird / Gold</p>
           </section>
         </div>
-        <p class="muted small">Spisak je iz javno objavljene liste (riftboundguide.com) i poklapa se sa spiskom u aplikaciji Riftbound kolekcija; ako se nešto ne slaže sa tvojom kutijom, važi ono što je u kutiji.</p>`
+        <p class="muted small">Spisak je iz javno objavljene liste (riftboundguide.com) i poklapa se sa spiskom u aplikaciji UnderGRAND Riftbound collection; ako se nešto ne slaže sa tvojom kutijom, važi ono što je u kutiji.</p>`
     }
   ],
 

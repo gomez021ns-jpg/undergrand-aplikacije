@@ -499,3 +499,26 @@ table.st td.pts-col, table.st th.pts-col { width: 40%; }
 .panel.vis .panel-h .more { padding: 4px 10px; border-radius: 999px; transition: background .15s, box-shadow .15s; }
 .panel.vis .panel-h .more:hover { background: rgb(240 162 59 / .18); box-shadow: 0 0 10px rgb(240 162 59 / .35); }
 .panel-b .ov-h a:hover { text-shadow: 0 0 10px color-mix(in oklab, var(--brand) 70%, transparent); }
+
+/* Lideri (1.9.0): table „top 10" po kategoriji, 4 u redu */
+.lb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.lb { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; transition: box-shadow .15s, border-color .15s; }
+.lb:hover { border-color: color-mix(in oklab, var(--acc) 55%, var(--line)); box-shadow: 0 0 18px color-mix(in oklab, var(--acc) 30%, transparent); }
+.lb h3 { margin: 0; padding: 12px 16px; font-size: 15px; border-bottom: 1px solid var(--line); position: relative; }
+.lb h3::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, var(--acc), transparent 75%); opacity: .8; }
+.lb ol { list-style: none; margin: 0; padding: 4px 0; }
+.lb li { display: grid; grid-template-columns: 26px 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 16px; }
+.lb li + li { border-top: 1px solid var(--line); }
+.lb-rank { color: var(--muted); font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.lb-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); }
+.lb-who { display: flex; flex-direction: column; min-width: 0; }
+.lb-who b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-who small { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; }
+.lb-who small .logo { width: 16px; height: 16px; }
+.lb-val { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.lb li.first { background: color-mix(in oklab, var(--acc) 9%, transparent); }
+.lb li.first .lb-rank { color: var(--acc-text); }
+.lb li.first .lb-img { width: 44px; height: 44px; box-shadow: 0 0 0 2px var(--acc); }
+.lb li.first { grid-template-columns: 26px 44px minmax(0, 1fr) auto; }
+.lb li.first .lb-val { font-size: 22px; color: var(--acc-text); }
+@media (min-width: 1200px) { .lb-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

@@ -4,6 +4,9 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.14.2", datum: "2026-10-28", izmene: [
+      "Novi naziv aplikacije: UnderGRAND Društvene igre (u naslovu prozora i na prečici na desktopu).",
+    ] },
     { v: "1.14.1", datum: "2026-10-21", izmene: [
       "Star Wars: Unlimited - Shadows of the Galaxy Two-Player Starter je stigao: oznaka „Stiže“ je sklonjena i dodatak se vodi kao deo kolekcije.",
     ] },

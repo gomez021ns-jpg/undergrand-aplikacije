@@ -116,7 +116,7 @@
 
   function screenUnsupported() {
     app.innerHTML = `<section class="panel start"><h2>Ovaj pregledač ne može da radi sa fajlom baze</h2>
-      <p>UnderGRAND Statistika čuva podatke direktno u fajlu <code>undergrand_stats.json</code>, a za to je potreban pristup fajlovima
+      <p>UnderGRAND statistika poseta čuva podatke direktno u fajlu <code>undergrand_stats.json</code>, a za to je potreban pristup fajlovima
       (File System Access), koji ovaj pregledač nema ili ga je isključio.</p>
       <p><b>Otvori aplikaciju u Microsoft Edge-u ili Vivaldiju</b> (radi i u Google Chrome-u): desni klik na <code>index.html</code> → Otvori pomoću → Microsoft Edge.</p>
       <p class="hint">Firefox i Safari ne podržavaju ovaj pristup, a u Brave-u je podrazumevano isključen.</p></section>`;

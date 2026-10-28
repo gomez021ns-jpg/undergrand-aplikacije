@@ -4,6 +4,28 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.8.2", datum: "2026-10-28", izmene: [
+      "Novi naziv aplikacije: UnderGRAND Riftbound collection (u naslovu prozora, zaglavlju i na prečici na desktopu).",
+    ] },
+    { v: "1.8.1", datum: "2026-10-27", izmene: [
+      "Ispravljeno: dopunske karte (npr. Shadow Clone // Tentacle) nisu se pojavljivale ako su cene bile preuzete malo pre prelaska na novu verziju.",
+      "Ispravljeno: neke dopunske karte (npr. tokeni Mech // Buff, Sand Soldier // Buff, Mech // Recruit) bile su bez slike jer je TCGplayer nema; sada se slika uzima sa riftbound.gg.",
+    ] },
+    { v: "1.8.0", datum: "2026-10-27", izmene: [
+      "Karte kojih nema u glavnoj bazi sada se dopunjuju sa TCGplayer-a: Vendetta i Unleashed tokeni (npr. Shadow Clone // Tentacle, VEN-T05) i ceo novi set Radiance. Mogu da se dodaju u kolekciju, imaju sliku, tekst i cenu.",
+      "Dvostrane karte se u „Uvezi spisak“ prepoznaju i po imenu jedne strane (npr. samo „Shadow Clone“).",
+    ] },
+    { v: "1.7.1", datum: "2026-10-27", izmene: [
+      "Ispravljeno: 9 Vendetta karata (Mel, Defiant Soul, Zed, Without a Sound, Shen, Scourge of Shadows, obe Akali, obe Ambessa, Jayce i Renekton) prikazivalo se sa alternativnim crtežom, pa ih je bilo teško prepoznati. Sada imaju običan crtež, kao na karti iz kesice.",
+    ] },
+    { v: "1.7.0", datum: "2026-10-27", izmene: [
+      "U kartici „Dodaj karte u kolekciju“ je novi deo „Uvezi spisak“: nalepi ili ukucaj spisak karata (npr. ceo špil, bundle ili kesicu), jedna karta u redu, imenom ili kodom, sa brojem primeraka.",
+      "Pre dodavanja vidiš šta je prepoznato i koliko ćeš imati posle uvoza, a redovi koje aplikacija ne prepozna su posebno označeni.",
+      "Posle uvoza možeš jednim klikom da ga poništiš.",
+    ] },
+    { v: "1.6.2", datum: "2026-10-24", izmene: [
+      "U zaglavlju je prekidač „Efekat“: uključuje i isključuje crno-beli zrnasti izgled karata. Kad je isključen, sve karte su odmah u boji. Izbor se pamti.",
+    ] },
     { v: "1.6.1", datum: "2026-10-22", izmene: [
       "Karte u kolekciji su crno-bele i zrnaste, kao štampani plakat; kad pređeš mišem preko karte, polako se pojavi u punim bojama. Prozor karte ostaje u boji.",
     ] },
