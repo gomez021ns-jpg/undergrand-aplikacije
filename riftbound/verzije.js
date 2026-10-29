@@ -4,6 +4,10 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.9.0", datum: "2026-10-28", izmene: [
+      "Rezervna kopija i kao CSV fajl za Excel: u folderu save se posle svake izmene sam pravi riftbound-kolekcija.csv (kod, ime, set, tip, retkost, domen, broj primeraka i cena), a dugme „Sačuvaj kao CSV (Excel)“ ga čuva u Preuzimanja.",
+      "Kolekcija može da se vrati i iz CSV fajla: „Učitaj fajl…“ ubaci fajl u polje, pa „Učitaj iz teksta“.",
+    ] },
     { v: "1.8.2", datum: "2026-10-28", izmene: [
       "Novi naziv aplikacije: UnderGRAND Riftbound collection (u naslovu prozora, zaglavlju i na prečici na desktopu).",
     ] },

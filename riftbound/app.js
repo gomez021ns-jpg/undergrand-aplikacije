@@ -230,9 +230,52 @@
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || "HTTP " + r.status);
       setSaveMsg(`Automatski sačuvano u folder save u ${j.vreme}.`, false);
+      serverSaveCsv();
     } catch (err) {
       setSaveMsg(`Čuvanje u folder save nije uspelo (${err.message === "Failed to fetch" ? "server ne radi" : err.message}). Izmene su za sada sačuvane samo u pregledaču; pokreni aplikaciju ponovo prečicom.`, true);
     }
+  }
+
+  /* ============ CSV kopija kolekcije (od 1.9.0) ============ */
+  // Za Excel: tačka-zarez, decimalni zarez, UTF-8 sa BOM-om (da se č/ć/đ vide). Vraća se preko „Učitaj fajl“ /
+  // „Učitaj iz teksta“ - za vraćanje su bitne samo kolone Kod i Primeraka.
+  const CSV_HEAD = ["Kod", "Ime", "Set", "Tip", "Retkost", "Domen", "Primeraka", "Cena USD", "Ukupno USD"];
+  function csvText() {
+    const U = PRICES ? unitPrices() : null;
+    const cell = (v) => { const s = String(v ?? ""); return /[;"\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const money = (v) => (v == null ? "" : v.toFixed(2).replace(".", ","));
+    const rows = Object.entries(COLL).filter(([, q]) => q > 0).map(([code, q]) => {
+      const c = BY.get(code), v = U && c ? U.get(c.code)?.v : null;
+      return { code, c, q, v };
+    }).sort((a, b) => (a.c?.set || "").localeCompare(b.c?.set || "") || a.code.localeCompare(b.code));
+    const lines = [CSV_HEAD.join(";")].concat(rows.map(({ code, c, q, v }) => [
+      code.toUpperCase(), c?.name, c ? `${c.setl || c.set}` : "", [c?.type, c?.sup].filter(Boolean).join(" "), c?.rar, (c?.dom || []).join(" + "),
+      q, money(v), money(v == null ? null : v * q),
+    ].map(cell).join(";")));
+    return "\ufeff" + lines.join("\r\n") + "\r\n";
+  }
+  // CSV → { kod: broj } (kolone Kod i Primeraka; razdvajač ; , ili tab); null ako tekst nije CSV kopija
+  function parseCsvBackup(text) {
+    const lines = String(text).replace(/^\ufeff/, "").split(/\r?\n/).filter((l) => l.trim());
+    if (!lines.length) return null;
+    const sep = [";", "\t", ","].find((d) => lines[0].includes(d)); if (!sep) return null;
+    const split = (l) => { const out = []; let cur = "", q = false; for (let i = 0; i < l.length; i++) { const ch = l[i];
+      if (q) { if (ch === '"' && l[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+      else if (ch === '"') q = true; else if (ch === sep) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map((x) => x.trim()); };
+    const head = split(lines[0]).map((h) => h.toLowerCase());
+    const ki = head.indexOf("kod"), qi = head.findIndex((h) => h.startsWith("primerak"));
+    if (ki < 0 || qi < 0) return null;
+    const out = {};
+    for (const l of lines.slice(1)) {
+      const f = split(l), code = (f[ki] || "").toLowerCase(), q = parseInt(f[qi], 10);
+      if (/^[a-z0-9]{1,8}-[a-z0-9]{1,8}$/.test(code) && q > 0) out[code] = Math.min(999, (out[code] || 0) + q);
+    }
+    return out;
+  }
+  let csvTimer = 0;
+  function serverSaveCsv() { // posle uspešnog upisa JSON-a; greška ovde ne smeta glavnom čuvanju
+    clearTimeout(csvTimer);
+    csvTimer = setTimeout(() => fetch("/api/kolekcija-csv", { method: "PUT", headers: { "Content-Type": "text/csv; charset=utf-8" }, body: csvText() }).catch(() => {}), 500);
   }
 
   /* ============ pravila i predlog špila ============ */
@@ -640,13 +683,13 @@
   function renderBackup() {
     $("#app").innerHTML = `<div class="backup">
       <div class="panel"><h2>Automatska rezervna kopija</h2>
-        ${SERVER ? `<p class="hint">Kolekcija se posle svake izmene sama upisuje u <code>${esc(saveFile)}</code>, uz snimak stanja za svaki dan (poslednjih 60 dana). Pri otvaranju aplikacija čita kolekciju odatle.</p>` : ""}
+        ${SERVER ? `<p class="hint">Kolekcija se posle svake izmene sama upisuje u <code>${esc(saveFile)}</code>, uz snimak stanja za svaki dan (poslednjih 60 dana). Pri otvaranju aplikacija čita kolekciju odatle. Pored nje je i <code>riftbound-kolekcija.csv</code> za Excel (ime, set, retkost, broj primeraka i cena).</p>` : ""}
         <div class="row">${SERVER ? '<button class="btn" id="open-save">Otvori folder save</button>' : ""}<span class="hint" id="save-status">${esc(saveStateMessage)}</span></div>
       </div>
       <div class="panel"><h2>Ručna rezervna kopija</h2>
-        <p class="hint">Ovo je dodatna mogućnost za ručni izvoz, kopiranje ili vraćanje kolekcije.</p>
+        <p class="hint">Ovo je dodatna mogućnost za ručni izvoz, kopiranje ili vraćanje kolekcije. CSV fajl se otvara u Excel-u; i iz njega može da se vrati kolekcija („Učitaj fajl“, pa „Učitaj iz teksta“).</p>
         <textarea id="bk" spellcheck="false">${esc(JSON.stringify(COLL))}</textarea>
-        <div class="row"><button class="btn primary" id="bkfile">Sačuvaj kao fajl</button><button class="btn" id="bkcopy">Kopiraj</button><button class="btn" id="bkload">Učitaj iz teksta</button><span class="hint" id="bkmsg"></span></div>
+        <div class="row"><button class="btn primary" id="bkfile">Sačuvaj kao fajl</button><button class="btn primary" id="bkcsv">Sačuvaj kao CSV (Excel)</button><button class="btn" id="bkcopy">Kopiraj</button><button class="btn" id="bkpick">Učitaj fajl…</button><button class="btn" id="bkload">Učitaj iz teksta</button><input type="file" id="bkfilein" accept=".csv,.json,.txt" hidden><span class="hint" id="bkmsg"></span></div>
       </div>
       ${NOSEED ? `<div class="panel"><h2>Baza karata</h2>
         <p class="hint">Karte i slike stižu sa riftcodex.com; ${WEB ? `cene su TCGplayer cene od poslednje objave sajta${PRICES?.t ? ` (${new Date(PRICES.t * 1000).toLocaleDateString("sr-RS")})` : ""}` : "cene su sveže TCGplayer cene (preuzimaju se pri pokretanju)"}.</p>
@@ -1012,12 +1055,22 @@
     if (t.id === "bkcopy") { const ta = $("#bk"); try { await navigator.clipboard.writeText(ta.value); $("#bkmsg").textContent = "Kopirano."; } catch { ta.select(); $("#bkmsg").textContent = "Označeno - pritisni Ctrl+C."; } return; }
     if (t.id === "bkload") {
       try {
-        const o = JSON.parse($("#bk").value); if (typeof o !== "object" || !o || Array.isArray(o)) throw 0;
+        const txt = $("#bk").value;
+        let o = parseCsvBackup(txt); // CSV kopija (od 1.9.0) ili JSON
+        if (!o) { o = JSON.parse(txt); if (typeof o !== "object" || !o || Array.isArray(o)) throw 0; }
         COLL = {}; for (const [k, v] of Object.entries(o)) if (+v > 0) COLL[k.toLowerCase()] = +v;
         saveColl(); $("#bkmsg").textContent = "Kolekcija učitana.";
       } catch { $("#bkmsg").textContent = "Tekst nije ispravna rezervna kopija."; }
       return;
     }
+    if (t.id === "bkcsv") {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csvText()], { type: "text/csv;charset=utf-8" }));
+      a.download = `riftbound-kolekcija-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+      $("#bkmsg").textContent = "CSV fajl je u folderu Preuzimanja." + (PRICES ? "" : " (Bez cena - cene još nisu učitane.)");
+      return;
+    }
+    if (t.id === "bkpick") { $("#bkfilein").click(); return; }
     if (t.id === "bkfile") {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([JSON.stringify(COLL, null, 1)], { type: "application/json" }));
@@ -1043,6 +1096,11 @@
   });
   document.addEventListener("change", (e) => {
     const id = e.target.id;
+    if (id === "bkfilein") { // fajl ide u polje, a učitava se tek na „Učitaj iz teksta“ (da se vidi šta se učitava)
+      const f = e.target.files[0]; if (!f) return;
+      f.text().then((txt) => { $("#bk").value = txt; $("#bkmsg").textContent = `Fajl „${f.name}“ je u polju iznad. Proveri pa klikni „Učitaj iz teksta“ - to zamenjuje celu kolekciju.`; });
+      e.target.value = ""; return;
+    }
     if (id === "add-set") { state.addSet = e.target.value; state.addLimit = 30; renderAddResults(); return; }
     if (id === "c-sort" || id === "c-rar") { state[id === "c-sort" ? "csort" : "crar"] = e.target.value; state.climit = 60; renderCollector(); return; }
     if (id === "mine") state.mine = e.target.checked;

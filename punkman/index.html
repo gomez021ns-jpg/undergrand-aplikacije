@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UnderGRAND Punkman</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <img class="ug-logo" src="assets/logo.png" alt="UnderGRAND">
+    <div class="ug-title">
+      <div class="ug-title-row"><h1 class="ransom" aria-label="Punkman"><span>P</span><span>u</span><span>N</span><span>K</span><span>m</span><span>A</span><span>N</span></h1><button class="ug-ver" type="button" data-verzije title="Šta je novo"></button></div>
+      <p class="ug-slogan">Tri akorda, tri table, nula kompromisa.</p>
+    </div>
+    <div class="ug-actions"><button class="btn" id="music" type="button">Muzika: uklj.</button><button class="btn" id="mute" type="button">Zvuk: uklj.</button></div>
+  </header>
+
+  <div class="cols">
+  <div class="hud" aria-live="off">
+    <div><span class="lab">Skor</span><b id="score">0</b></div>
+    <div><span class="lab">Rekord</span><b id="hi">0</b></div>
+    <div><span class="lab">Životi</span><span id="lives"></span></div>
+    <div><span class="lab">Tabla</span><b id="board">1 · Podrum</b></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="Tabla igre"></canvas>
+    <div class="ov" id="ov"></div>
+  </div>
+
+  <div class="amp">
+    <span class="lab">Pojačalo</span>
+    <div class="segs" id="segs"></div>
+    <div class="shelf" id="shelf" title="Skupljeni bonusi"></div>
+  </div>
+
+  <div class="pad" id="pad">
+    <button class="u" type="button" data-d="U" aria-label="Gore">▲</button>
+    <button class="l" type="button" data-d="L" aria-label="Levo">◀</button>
+    <button class="d" type="button" data-d="D" aria-label="Dole">▼</button>
+    <button class="r" type="button" data-d="R" aria-label="Desno">▶</button>
+  </div>
+  <p class="keys">Strelice ili WASD · P pauza · M zvuk · N muzika · na telefonu prevuci prstom po tabli</p>
+
+  <section class="sheet cast-sheet">
+    <h2>Postava <small>ko te juri</small></h2>
+    <div id="cast" style="display:flex;flex-direction:column;gap:10px"></div>
+  </section>
+
+  <section class="sheet tour-sheet">
+    <h2>Turneja <small>tri table</small></h2>
+    <ol class="tour" id="tour"></ol>
+  </section>
+
+    <section class="sheet rek-sheet">
+      <h2>Rekordi <small>deset najboljih</small></h2>
+      <ol class="rek" id="rek"></ol>
+      <p class="rek-hint">Ko na kraju igre uđe među deset najboljih, upisuje svoja tri slova.</p>
+      <p class="rek-note">Rekordi se čuvaju samo u ovom pregledaču, na ovom uređaju - ne šalju se nikome.</p>
+    </section>
+  </div>
+</div>
+
+<script src="js/mazes.js"></script>
+<script src="js/config.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/music.js"></script>
+<script src="js/game.js"></script>
+<script src="verzije.js"></script>
+<script src="punekran.js"></script>
+</body>
+</html>

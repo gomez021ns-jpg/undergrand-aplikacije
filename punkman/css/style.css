@@ -1,0 +1,161 @@
+/* Layout: one arcade column — ransom-note masthead, HUD strip, the board, amp meter, then the cast and tour sheets like a photocopied flyer. Single dark look by choice. */
+:root{
+  color-scheme: dark;
+  --ink:#131115;        /* page */
+  --panel:#1e1b21;      /* strips */
+  --line:#3a343f;
+  --paper:#ebeae5;      /* xerox flyer */
+  --paper-ink:#111012;
+  --pink:#ff2d7a;       /* mohawk */
+  --yellow:#ffd400;     /* safety yellow */
+  --fg:#f1eef2;
+  --mute:#9a92a0;
+  --f-display:'Archivo Black', Impact, 'Arial Black', sans-serif;
+  --f-hand:'Permanent Marker', 'Comic Sans MS', cursive;
+  --f-type:'Special Elite', 'Courier New', monospace;
+  --f-mono:'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--ink); color:var(--fg); font-family:var(--f-mono); font-size:14px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:14px 40px;
+  overflow-x:hidden;
+}
+/* Tabla je kvadrat --board: koliko dozvoli visina prozora (ispod zaglavlja), a širina ostavi mesta za desnu kolonu.
+   Desno (--side): skor, pojačalo i rekordi; ispod table uputstvo, Postava i Turneja. */
+:root{--side:300px; --gap:22px; --board:clamp(420px, min(calc(100vh - var(--head-h, 112px)), calc(100vw - 52px - var(--side) - var(--gap))), 1000px)}
+.app{width:calc(var(--board) + var(--gap) + var(--side)); max-width:100%; margin:0 auto; display:flex; flex-direction:column; gap:10px}
+.cols{display:grid; grid-template-columns:var(--board) var(--side); column-gap:var(--gap); row-gap:10px; align-items:start;
+  grid-template-rows:auto auto auto 1fr;
+  grid-template-areas:"stage hud" "stage amp" "stage rek" "stage ." "pad ." "keys ." "cast ." "tour ."}
+.cols > .hud{grid-area:hud; grid-template-columns:minmax(0,1fr) minmax(0,1fr); row-gap:10px}
+.cols > .stage{grid-area:stage}
+.cols > .amp{grid-area:amp}
+.cols > .pad{grid-area:pad}
+.cols > .keys{grid-area:keys}
+.cols > .rek-sheet{grid-area:rek}
+.cols > .cast-sheet{grid-area:cast}
+.cols > .tour-sheet{grid-area:tour}
+@media (max-width:860px){
+  :root{--board:calc(100vw - 32px)}
+  .app{width:auto}
+  .cols{grid-template-columns:minmax(0,1fr); grid-template-rows:none; grid-template-areas:"hud" "stage" "amp" "pad" "keys" "rek" "cast" "tour"}
+  .cols > .hud{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1.2fr)}
+}
+.top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.ransom{margin:0; display:flex; gap:3px; line-height:1; font-weight:400}
+.ransom span{display:inline-block; padding:4px 6px 3px; font-size:clamp(22px,6vw,34px)}
+.ransom span:nth-child(1){font-family:var(--f-display); background:var(--pink); color:var(--paper-ink); transform:rotate(-4deg)}
+.ransom span:nth-child(2){font-family:var(--f-type); background:var(--paper); color:var(--paper-ink); transform:rotate(3deg)}
+.ransom span:nth-child(3){font-family:var(--f-hand); color:var(--yellow); transform:rotate(-2deg) translateY(2px)}
+.ransom span:nth-child(4){font-family:var(--f-display); background:var(--paper-ink); color:var(--paper); outline:2px solid var(--paper); transform:rotate(5deg)}
+.ransom span:nth-child(5){font-family:var(--f-type); background:var(--yellow); color:var(--paper-ink); transform:rotate(-3deg)}
+.ransom span:nth-child(6){font-family:var(--f-hand); background:var(--paper); color:var(--pink); transform:rotate(2deg)}
+.ransom span:nth-child(7){font-family:var(--f-display); color:var(--pink); transform:rotate(-5deg) translateY(-2px)}
+.btn{font:600 12px/1 var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--fg); background:transparent; border:1.5px solid var(--line); padding:8px 10px; cursor:pointer}
+.btn:hover{border-color:var(--mute)}
+.btn:focus-visible,.go:focus-visible,.pad button:focus-visible{outline:2px solid var(--yellow); outline-offset:2px}
+.hud{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1.2fr); gap:8px; background:var(--panel); padding:8px 10px}
+.hud > div{display:flex; flex-direction:column; gap:3px; min-width:0}
+.lab{font-size:10px; letter-spacing:.14em; color:var(--mute); text-transform:uppercase}
+.hud b{font:600 15px/1.1 var(--f-mono); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#lives{display:flex; gap:3px; height:18px; align-items:center}
+#lives .lives-more{font:600 13px/1 var(--f-mono); color:var(--yellow); margin-left:2px}
+.stage{position:relative; width:100%; touch-action:none; user-select:none; -webkit-user-select:none}
+#cv{display:block; width:100%}
+.ov[hidden]{display:none}
+.ov{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:12px; background:rgba(19,17,21,.62); overflow:auto}
+.flyer{background:var(--paper); color:var(--paper-ink); max-width:380px; width:100%; padding:20px 18px 18px; transform:rotate(-1.2deg); box-shadow:6px 6px 0 var(--pink); display:flex; flex-direction:column; gap:10px; text-align:left}
+.flyer h2{font:400 clamp(26px,7vw,40px)/.95 var(--f-display); margin:0; text-wrap:balance; text-transform:uppercase}
+.flyer p{margin:0; font:15px/1.4 var(--f-type)}
+.flyer .tag{font:400 18px/1.1 var(--f-hand); color:var(--pink)}
+.flyer .small{font:12px/1.4 var(--f-mono); color:#4a454e}
+.go{align-self:flex-start; font:400 18px/1 var(--f-display); text-transform:uppercase; letter-spacing:.04em; background:var(--paper-ink); color:var(--yellow); border:0; padding:12px 18px; cursor:pointer; transform:rotate(1deg)}
+.go:hover{background:var(--pink); color:var(--paper-ink)}
+.amp{display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--panel); padding:8px 10px}
+.segs{display:flex; gap:3px; flex:1; min-width:150px}
+.segs i{flex:1; height:14px; background:#2b2730; position:relative}
+.segs i.on{background:var(--yellow)}
+.segs i:last-child.on{background:var(--pink)}
+.segs i:last-child::after{content:"11"; position:absolute; top:-1px; left:0; right:0; text-align:center; font:600 10px/16px var(--f-mono); color:var(--paper-ink)}
+.shelf{display:flex; gap:6px}
+.shelf canvas{width:30px; height:30px; background:#2b2730; opacity:.35}
+.shelf canvas.got{opacity:1; background:#3a2f12}
+.pad{display:none; grid-template-columns:repeat(3,64px); grid-template-rows:repeat(2,52px); gap:6px; justify-content:center}
+.pad button{font:400 22px/1 var(--f-display); background:var(--panel); color:var(--fg); border:1.5px solid var(--line); touch-action:none}
+.pad button:active{background:var(--pink); color:var(--paper-ink)}
+.pad .u{grid-column:2; grid-row:1} .pad .l{grid-column:1; grid-row:2} .pad .d{grid-column:2; grid-row:2} .pad .r{grid-column:3; grid-row:2}
+@media (pointer:coarse){ .pad{display:grid} }
+.keys{margin:0; color:var(--mute); font-size:12px; text-align:center}
+.sheet{background:var(--paper); color:var(--paper-ink); padding:16px 16px 14px; display:flex; flex-direction:column; gap:12px}
+.sheet:nth-of-type(odd){transform:rotate(.5deg)}
+.sheet:nth-of-type(even){transform:rotate(-.6deg)}
+.sheet h2{margin:0; font:400 22px/1 var(--f-display); text-transform:uppercase; display:flex; align-items:baseline; gap:10px}
+.sheet h2 small{font:400 15px/1 var(--f-hand); color:var(--pink); text-transform:none}
+.row{display:grid; grid-template-columns:52px minmax(0,1fr); gap:12px; align-items:center}
+.row canvas{width:52px; height:52px; background:var(--paper-ink)}
+.row b{display:block; font:400 15px/1.15 var(--f-display); text-transform:uppercase}
+.row span{font:14px/1.35 var(--f-type)}
+.tour{display:flex; flex-direction:column; gap:8px; margin:0; padding:0; list-style:none}
+.tour li{display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:baseline; padding:6px 0; border-top:1.5px dashed #b9b6ad}
+.tour li:first-child{border-top:0}
+.tour .n{font:400 22px/1 var(--f-display)}
+.tour .t{font:14px/1.35 var(--f-type)}
+.tour .t b{font-family:var(--f-display); font-weight:400; text-transform:uppercase}
+.tour .lvl{font:400 14px/1 var(--f-hand); white-space:nowrap}
+.tour li.now .n{color:var(--pink)}
+@media (prefers-reduced-motion:reduce){ .flyer,.sheet,.go{transform:none!important} }
+/* UnderGRAND porodica: logo, oznaka verzije, slogan, dugmad desno, „Pun ekran“ i „Šta je novo“ - u bojama Punkmana. */
+.top{justify-content:flex-start}
+.ug-logo{height:40px; width:auto; flex:none}
+.ug-title{display:flex; flex-direction:column; gap:6px; min-width:0}
+.ug-title-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.ug-slogan{margin:0; font:400 14px/1.2 var(--f-hand); color:var(--mute)}
+.ug-ver{font:600 11px/1 var(--f-mono); letter-spacing:.08em; color:var(--yellow); background:transparent; border:1.5px solid var(--line); padding:4px 7px; cursor:pointer}
+.ug-ver:hover{border-color:var(--yellow)}
+.ug-actions{margin-left:auto; display:flex; gap:8px; align-items:center}
+.fs-btn{font:600 12px/1 var(--f-mono); letter-spacing:.08em; text-transform:uppercase; color:var(--fg); background:transparent; border:1.5px solid var(--line); padding:7px 10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap}
+.fs-btn:hover{border-color:var(--pink); color:var(--pink)}
+.fs-btn svg{width:14px; height:14px; flex:none}
+.ug-ver:focus-visible,.fs-btn:focus-visible{outline:2px solid var(--yellow); outline-offset:2px}
+.ver-dlg{width:min(560px, calc(100vw - 32px)); max-height:min(80vh, 720px); padding:0; border:0; background:var(--paper); color:var(--paper-ink); box-shadow:6px 6px 0 var(--pink); overflow:hidden}
+.ver-dlg[open]{display:flex; flex-direction:column}
+.ver-dlg::backdrop{background:rgba(19,17,21,.7)}
+.ver-top{padding:18px 20px 0; border-bottom:1.5px dashed #b9b6ad}
+.ver-list{flex:1; min-height:0; overflow-y:auto; padding:0 14px 4px 20px; margin:0 6px 10px 0}
+.ver-h{display:flex; justify-content:space-between; align-items:center; gap:12px}
+.ver-h h2{margin:0; font:400 24px/1 var(--f-display); text-transform:uppercase}
+.ver-x{background:none; border:0; color:#4a454e; font-size:28px; line-height:1; cursor:pointer}
+.ver-x:hover{color:var(--pink)}
+.ver-cur{color:#4a454e; font-size:13px; margin:6px 0 12px}
+.ver-item{border-top:1.5px dashed #b9b6ad; padding:10px 0 2px}
+.ver-item:first-child{border-top:0}
+.ver-item h3{font:400 16px/1.2 var(--f-display); text-transform:uppercase; margin:0 0 4px}
+.ver-item h3 span{color:#4a454e; font:13px var(--f-mono); text-transform:none; margin-left:6px}
+.ver-item h3 .ver-tip{font:400 13px/1 var(--f-hand); padding:2px 8px; border:1.5px solid var(--paper-ink); vertical-align:2px}
+.ver-tip.t-x{background:var(--pink); border-color:var(--pink); color:var(--paper-ink)}
+.ver-tip.t-y{background:var(--yellow); border-color:var(--yellow)}
+.ver-item ul{margin:0 0 8px; padding-left:1.2em}
+.ver-item li{margin:3px 0; font:14px/1.4 var(--f-type)}
+/* Rekordi (desna kolona) i upis tri slova na kraju igre */
+.rek{margin:0; padding:0; list-style:none; display:flex; flex-direction:column}
+.rek li{display:grid; grid-template-columns:24px 52px minmax(0,1fr); grid-template-rows:auto auto; column-gap:8px; align-items:baseline; padding:6px 0; border-top:1.5px dashed #b9b6ad}
+.rek li:first-child{border-top:0}
+.rek .n{grid-row:1/3; font:400 16px/1 var(--f-display)}
+.rek li:first-child .n{color:var(--pink)}
+.rek .ini{font:400 19px/1.1 var(--f-display); letter-spacing:.08em}
+.rek .pts{font:600 15px/1.1 var(--f-mono); font-variant-numeric:tabular-nums; text-align:right}
+.rek .meta{grid-column:2/4; font:12px/1.3 var(--f-type); color:#4a454e}
+.rek li.new{background:var(--yellow); margin:0 -8px; padding:6px 8px}
+.rek li.new + li{border-top-color:transparent}
+.rek .empty{grid-column:1/-1; display:block; font:14px/1.4 var(--f-type); color:#4a454e; padding:4px 0}
+.rek-hint{margin:0; font:400 14px/1.3 var(--f-hand); color:var(--pink)}
+.rek-note{margin:0; font:12px/1.35 var(--f-mono); color:#4a454e}
+.ini-in{width:5.2ch; font:400 34px/1 var(--f-display); letter-spacing:.18em; text-transform:uppercase; text-align:center; padding:6px 0 4px .18em; background:#fff; color:var(--paper-ink); border:2px solid var(--paper-ink); user-select:text; -webkit-user-select:text}
+.ini-in:focus{outline:3px solid var(--pink); outline-offset:2px}
+.ini-row{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.ini-row .go{align-self:auto}
+.go:disabled{opacity:.4; cursor:default}
+.go:disabled:hover{background:var(--paper-ink); color:var(--yellow)}
