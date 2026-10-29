@@ -39,7 +39,9 @@ body{
 .cols > .cast-sheet{grid-area:cast}
 .cols > .tour-sheet{grid-area:tour}
 @media (max-width:860px){
-  :root{--board:calc(100vw - 32px)}
+  /* jedna kolona: tabla po širini, ali ne viša od prozora ispod skora (važi i u okviru na tuđem sajtu) */
+  :root{--board:min(calc(100vw - 32px), max(260px, calc(100vh - var(--head-h, 240px))))}
+  .cols > .stage{width:var(--board); justify-self:center}
   .app{width:auto}
   .cols{grid-template-columns:minmax(0,1fr); grid-template-rows:none; grid-template-areas:"hud" "stage" "amp" "pad" "keys" "rek" "cast" "tour"}
   .cols > .hud{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1.2fr)}
@@ -109,7 +111,12 @@ body{
 @media (prefers-reduced-motion:reduce){ .flyer,.sheet,.go{transform:none!important} }
 /* UnderGRAND porodica: logo, oznaka verzije, slogan, dugmad desno, „Pun ekran“ i „Šta je novo“ - u bojama Punkmana. */
 .top{justify-content:flex-start}
-.ug-logo{height:40px; width:auto; flex:none}
+.ug-logo{height:40px; width:auto; flex:none; display:block}
+.ug-logo-link{flex:none; display:block}
+.ug-logo-link:focus-visible{outline:2px solid var(--yellow); outline-offset:3px}
+.credit{margin-top:6px; text-align:center; font:12px/1.4 var(--f-mono); color:var(--mute)}
+.credit a{color:var(--yellow); text-decoration:none}
+.credit a:hover{text-decoration:underline}
 .ug-title{display:flex; flex-direction:column; gap:6px; min-width:0}
 .ug-title-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
 .ug-slogan{margin:0; font:400 14px/1.2 var(--f-hand); color:var(--mute)}

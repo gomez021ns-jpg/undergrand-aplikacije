@@ -4,6 +4,10 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.3.1", datum: "2026-10-29", izmene: [
+      "UnderGRAND logo u zaglavlju vodi na undergrandradio.com, a ispod igre piše „Igra UnderGRAND radija“ sa linkom.",
+      "Kad je prozor uzan (ili je igra ugrađena u stranicu drugog sajta), tabla se smanji da cela stane na ekran.",
+    ] },
     { v: "1.3.0", datum: "2026-10-29", izmene: [
       "Muzika za sve tri table: Klub ima ska-pank (gitara na „i“, „duvači“ sa melodijom, pa brzi refren), a Grad hardcore (najbrži, sa sporim teškim delom u sredini).",
       "Fontovi su sada u samoj igri: izgled je isti i bez interneta, a igra ne učitava ništa sa drugih sajtova.",
