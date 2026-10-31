@@ -432,7 +432,7 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 // Visina iznad table (zaglavlje) + 14 px ispod, da tabla (--board u CSS-u) stane u prozor bez pomeranja.
-function fitHead(){ document.documentElement.style.setProperty('--head-h',Math.ceil(stage.getBoundingClientRect().top+scrollY+14)+'px'); }
+function fitHead(){ document.documentElement.style.setProperty('--head-h',Math.ceil(stage.getBoundingClientRect().top+scrollY+14)+'px'); resize(); } // resize odmah: veličina table zavisi od --head-h
 fitHead(); addEventListener('resize',fitHead);
 new ResizeObserver(resize).observe(stage);
 loadLevel(0); resetActors(); resize(); renderCast(); renderShelf(); renderRek(); updHud(); showTitle();

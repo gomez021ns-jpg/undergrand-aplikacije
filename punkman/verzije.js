@@ -4,6 +4,11 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.3.2", datum: "2026-10-31", izmene: [
+      "Novi okvir „Privatnost“ desno, ispod rekorda: igra ne prikuplja ničije podatke, nema praćenja, reklama ni kolačića za praćenje, a rekordi i podešavanja ostaju samo u pregledaču na tvom računaru.",
+      "Sređen izgled: listovi više nisu nakrivljeni i ništa ne štrči van ivica; Postava i Turneja su ispod table jedna pored druge; pojačalo i bonusi su u istom redu, sa natpisima kao u skoru.",
+      "Ispravljeno: na uskom prozoru tabla se ponekad nije smanjila do kraja, a na telefonu je izlazila nekoliko tačaka van ekrana.",
+    ] },
     { v: "1.3.1", datum: "2026-10-29", izmene: [
       "UnderGRAND logo u zaglavlju vodi na undergrandradio.com, a ispod igre piše „Igra UnderGRAND radija“ sa linkom.",
       "Kad je prozor uzan (ili je igra ugrađena u stranicu drugog sajta), tabla se smanji da cela stane na ekran.",

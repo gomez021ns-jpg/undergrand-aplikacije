@@ -33,7 +33,7 @@
   </div>
 
   <div class="amp">
-    <span class="lab">Pojačalo</span>
+    <span class="lab">Pojačalo</span><span class="lab amp-b">Bonusi</span>
     <div class="segs" id="segs"></div>
     <div class="shelf" id="shelf" title="Skupljeni bonusi"></div>
   </div>
@@ -46,22 +46,28 @@
   </div>
   <p class="keys">Strelice ili WASD · P pauza · M zvuk · N muzika · na telefonu prevuci prstom po tabli</p>
 
-  <section class="sheet cast-sheet">
-    <h2>Postava <small>ko te juri</small></h2>
-    <div id="cast" style="display:flex;flex-direction:column;gap:10px"></div>
+  <section class="sheet rek-sheet">
+    <h2>Rekordi <small>deset najboljih</small></h2>
+    <ol class="rek" id="rek"></ol>
+    <p class="rek-hint">Ko na kraju igre uđe među deset najboljih, upisuje svoja tri slova.</p>
   </section>
 
-  <section class="sheet tour-sheet">
-    <h2>Turneja <small>tri table</small></h2>
-    <ol class="tour" id="tour"></ol>
+  <section class="sheet priv-sheet">
+    <h2>Privatnost <small>tvoji podaci</small></h2>
+    <p>Igra ne prikuplja ničije podatke: nema naloga, praćenja, reklama ni kolačića za praćenje, i ništa se ne šalje na internet.</p>
+    <p>Rekordi, tvoja tri slova i podešavanje muzike čuvaju se samo u ovom pregledaču, na ovom računaru. Kad u pregledaču obrišeš podatke sajtova, brišu se i oni.</p>
   </section>
 
-    <section class="sheet rek-sheet">
-      <h2>Rekordi <small>deset najboljih</small></h2>
-      <ol class="rek" id="rek"></ol>
-      <p class="rek-hint">Ko na kraju igre uđe među deset najboljih, upisuje svoja tri slova.</p>
-      <p class="rek-note">Rekordi se čuvaju samo u ovom pregledaču, na ovom uređaju - ne šalju se nikome.</p>
+  <div class="sheets">
+    <section class="sheet cast-sheet">
+      <h2>Postava <small>ko te juri</small></h2>
+      <div class="cast" id="cast"></div>
     </section>
+    <section class="sheet tour-sheet">
+      <h2>Turneja <small>tri table</small></h2>
+      <ol class="tour" id="tour"></ol>
+    </section>
+  </div>
   </div>
   <footer class="credit">Igra <a href="https://undergrandradio.com" target="_blank" rel="noopener">UnderGRAND radija</a> · undergrandradio.com</footer>
 </div>
