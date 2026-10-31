@@ -1,10 +1,15 @@
 // Evroliga sa zvaničnih Evroliginih izvora. Isti izvori pokrivaju i Evrokup (kod "U").
 // Raspored: feeds.incrowdsports.com (?limit=500 = cela sezona). NE api-live.euroleague.net/v2/.../games:
 // njegov Cloudflare keš za stranicu otvorenu iz fajla (Origin: null) vraća odgovor bez CORS dozvole, pa
-// pregledač blokira podatke („Failed to fetch“) - provereno 4. 10. 2026. Tabela (api-live v3) radi u oba slučaja.
+// pregledač blokira podatke („Failed to fetch“) - provereno 4. 10. 2026. Isti problem ima i api-live v3
+// (tabela, lideri - 29. 10. 2026), pa i oni idu preko feeds.incrowdsports.com (vidi API ispod).
 (() => {
   const { esc, getJSON, gamesByDay, overviewGames, table, pager, logo } = SC;
-  const API = "https://api-live.euroleague.net";
+  // Tabela i lideri: isti Evroligin v3 API, ali preko feeds.incrowdsports.com. NE api-live.euroleague.net:
+  // njegov Cloudflare keš zapamti odgovor upućen bez Origin zaglavlja (npr. tuđi server) i posle ga daje
+  // i pregledaču - bez CORS dozvole - pa tabela/lideri povremeno padaju („Failed to fetch“); provereno
+  // 29. 10. 2026. feeds.incrowdsports.com dodaje Access-Control-Allow-Origin: * uvek kad postoji Origin.
+  const API = "https://feeds.incrowdsports.com/provider/euroleague-feeds";
   const FEED = "https://feeds.incrowdsports.com/provider/euroleague-feeds/v2";
 
   // Sezona počinje u julu: oktobar 2026 → E2026 (sezona 2026-27).

@@ -4,6 +4,9 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.9.2", datum: "2026-10-29", izmene: [
+      "Ispravka: Evroligina tabela i lideri povremeno su javljali „Ne mogu da učitam podatke“. Sada stižu sa Evroliginog izvora koji uvek dozvoljava učitavanje, pa greška ne bi trebalo da se ponavlja.",
+    ] },
     { v: "1.9.1", datum: "2026-10-28", izmene: [
       "Novi naziv aplikacije: UnderGRAND Sport (u naslovu prozora i na prečici na desktopu).",
     ] },
