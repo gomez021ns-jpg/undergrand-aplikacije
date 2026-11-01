@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UnderGRAND Nenadležni primat</title>
+  <link rel="icon" href="assets/icon.png">
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="ug-top">
+    <div class="ug-top-inner">
+      <a class="ug-logo" href="#" title="UnderGRAND"><img src="assets/logo.png" alt="UnderGRAND"></a>
+      <div class="ug-sep" aria-hidden="true"></div>
+      <div class="ug-title">
+        <div class="ug-title-row"><span class="ug-name">NENADLEŽNI PRIMAT</span><button class="ug-ver" type="button" data-verzije title="Šta je novo"></button></div>
+        <p class="ug-slogan">Povratak institucijama. Jedan student. Jedan kralj. Bezbroj buradi.</p>
+      </div>
+      <div class="ug-actions"><button class="ug-icon-btn" id="theme-btn" type="button"></button></div>
+    </div>
+  </header>
+
+  <main class="dk-wrap">
+    <aside class="dk-left">
+      <section class="card rek-card">
+        <h2>Rekordi</h2>
+        <div id="rek"></div>
+        <p class="rek-hint">Ko na kraju igre uđe među deset najboljih, upisuje svoja tri slova.</p>
+      </section>
+
+      <section class="card priv">
+        <h2>Privatnost</h2>
+        <p>Igra ne prikuplja ničije podatke: nema naloga, praćenja, reklama ni kolačića za praćenje, i ništa se ne šalje na internet.</p>
+        <p>Rekordi, tvoja tri slova i podešavanja zvuka, muzike i teme čuvaju se samo u ovom pregledaču, na ovom računaru. Kad u pregledaču obrišeš podatke sajtova, brišu se i oni.</p>
+      </section>
+    </aside>
+
+    <div class="dk-stage"><canvas id="game" aria-label="Nenadležni primat - igra"></canvas></div>
+
+    <aside class="dk-side">
+      <section class="card">
+        <div class="dk-btns">
+          <button class="btn primary" id="new-btn" type="button">Nova igra</button>
+          <button class="btn" id="pause-btn" type="button" disabled>Pauza</button>
+        </div>
+        <div class="sw-row">
+          <label class="sw"><input type="checkbox" id="snd"><span class="sw-track" aria-hidden="true"></span><span>Zvuk</span></label>
+          <label class="sw"><input type="checkbox" id="mus"><span class="sw-track" aria-hidden="true"></span><span>Muzika</span></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Kontrole</h2>
+        <table class="keys">
+          <tr><td><kbd>←</kbd><kbd>→</kbd></td><td>hodanje (ili A i D)</td></tr>
+          <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>merdevine gore i dole (ili W i S)</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>skok</td></tr>
+          <tr><td><kbd>Enter</kbd></td><td>nova igra, pauza</td></tr>
+          <tr><td><kbd>P</kbd></td><td>pauza</td></tr>
+          <tr><td><kbd>M</kbd></td><td>zvučni efekti uključeni / isključeni</td></tr>
+          <tr><td><kbd>N</kbd></td><td>muzika uključena / isključena</td></tr>
+          <tr><td><kbd>A</kbd>-<kbd>Ž</kbd></td><td>upis tri slova za rekord (↑↓ menja slovo, Enter upisuje)</td></tr>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Likovi</h2>
+        <ul class="how cast">
+          <li><b>Blokader</b> - ti. Student sa rancem i pištaljkom.</li>
+          <li><b>Kralj ćacija</b> - zauzeo je vrh i odande baca burad. Nije nadležan ni za šta, ali ne silazi.</li>
+          <li><b>Institucijana</b> - čeka na vrhu da je neko vrati na posao.</li>
+          <li><b>Botovi</b> - izlaze iz bubnja i jure te gore-dole po merdevinama.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Kako se igra</h2>
+        <ul class="how">
+          <li>Popni se do vrha i vrati Institucijanu.</li>
+          <li>Preskočeno bure, tabloid ili bot: <b>100</b> poena. Polomljene merdevine ne mogu da se koriste.</li>
+          <li><b>Pištaljka</b> rasteruje sve što ti ide u susret (300 - 800 poena), ali dok zviždiš nema skakanja ni penjanja.</li>
+          <li><b>Nivo 1 (Fakultet):</b> plavo bure koje upadne u bubanj pravi novog bota.</li>
+          <li><b>Nivo 2 (Fabrika saopštenja):</b> trake te nose i povremeno promene smer, a na njima putuju tabloidi. Svetlije merdevine se uvlače - penji se samo kad su izvučene. Indeks, transparent i Ustav donose bonus poene.</li>
+          <li><b>Nivo 3 (Lift za podobne):</b> preko rupa se skače na liftove - levi idu gore, desni dole. Siđi sa lifta pre motora na vrhu ili pre dna. Kralj baca opruge koje skakuću po gornjem spratu i padaju niz desnu stranu. Ovde nema pištaljke.</li>
+          <li><b>Nivo 4 (Kraljeva tribina):</b> pređi preko svih 8 žutih zakovica - svaka koju izvadiš ostavlja rupu (pazi da ne upadneš). Kad nestane poslednja, tribina se sruši i kralj propadne. Botovi dolaze sa strana. Izvađene zakovice ostaju izvađene i kad izgubiš život.</li>
+          <li>Bonus se smanjuje kako vreme prolazi - kad stigne do nule, gubiš život. I pad sa visine je kraj.</li>
+          <li>Nivoi se smenjuju i svaki krug je brži. Život više na 7.000 poena.</li>
+        </ul>
+        <p class="note">Satira. Likovi su izmišljeni i ne predstavljaju stvarne osobe.</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="game.js"></script>
+  <script src="app.js"></script>
+  <script src="verzije.js"></script>
+  <script src="punekran.js"></script>
+</body>
+</html>

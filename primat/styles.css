@@ -1,0 +1,153 @@
+/* UnderGRAND paleta (ista u svim aplikacijama). --brand = narandžasta aplikacije. */
+:root {
+  --bg: #f3f1ec;
+  --header: #ffffff;
+  --surface: #ffffff;
+  --surface2: #f3f0ea;
+  --text: #1c1e20;
+  --muted: #5a6167;
+  --line: #ddd7cc;
+  --shadow: 0 1px 2px rgb(60 50 30 / .08), 0 2px 8px rgb(60 50 30 / .05);
+  --radius: 14px;
+  --brand: #F0A23B;
+  --brand-text: #9b5806;
+  --brand-ink: #1b1206;
+  /* fontovi kao u igri „E ne'š kolega!!!“ (lokalno, assets/fonts): pikselski za naslove, Plex Mono za tekst */
+  --f-pix: "Pixelify Sans", Consolas, "Courier New", monospace;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101214; --header: #0b0d0f; --surface: #171a1d; --surface2: #1e2226; --text: #f1efea; --muted: #9aa1a7; --line: #2e3439;
+    --shadow: none; --brand-text: #F0A23B; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101214; --header: #0b0d0f; --surface: #171a1d; --surface2: #1e2226; --text: #f1efea; --muted: #9aa1a7; --line: #2e3439;
+  --shadow: none; --brand-text: #F0A23B; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.5 var(--f-mono);
+  font-variant-numeric: tabular-nums;
+}
+.muted { color: var(--muted); }
+
+/* --- UnderGRAND zaglavlje (isto u svim aplikacijama) --- */
+.ug-top { background: var(--header); border-bottom: 1px solid rgb(240 162 59 / .3); }
+.ug-top-inner { max-width: 1680px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 18px; }
+.ug-logo { display: flex; flex: none; background: #0d1013; border-radius: 12px; padding: 6px 12px; }
+.ug-logo:hover { text-decoration: none; }
+:root[data-theme="dark"] .ug-logo { background: transparent; padding: 0; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ug-logo { background: transparent; padding: 0; } }
+.ug-logo img { height: 56px; display: block; }
+.ug-sep { width: 2px; align-self: stretch; margin: 8px 0; background: var(--line); border-radius: 1px; }
+.ug-title { flex: 1; min-width: 0; }
+.ug-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ug-name { font: 700 30px/1.05 var(--f-pix); letter-spacing: .12em; color: var(--text); }
+.ug-slogan { margin: 3px 0 0; color: var(--muted); font-size: 14px; }
+.ug-ver { color: var(--brand-text); background: var(--surface2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font: inherit; font-size: 11px; font-weight: 800; letter-spacing: 1px; cursor: pointer; }
+.ug-ver:hover { border-color: var(--brand); }
+.ug-actions { display: flex; gap: 10px; flex: none; }
+.ug-icon-btn { width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); display: inline-grid; place-items: center; cursor: pointer; }
+.ug-icon-btn:hover { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.ug-icon-btn svg { width: 17px; height: 17px; }
+/* Pun ekran (punekran.js) */
+.fs-btn { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface2); color: var(--text); font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.fs-btn:hover { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.fs-btn svg { width: 16px; height: 16px; flex: none; }
+
+/* --- verzija („Šta je novo“) --- */
+.ver-dlg { width: min(560px, calc(100vw - 32px)); max-height: min(80vh, 720px); padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--text); overflow: hidden; }
+.ver-dlg[open] { display: flex; flex-direction: column; }
+.ver-dlg::backdrop { background: rgb(0 0 0 / .5); }
+.ver-top { padding: 18px 20px 0; border-bottom: 1px solid var(--line); }
+.ver-list { flex: 1; min-height: 0; overflow-y: auto; padding: 0 14px 4px 20px; margin: 0 6px 10px 0; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.ver-item:first-child { border-top: 0; }
+.ver-h { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ver-h h2 { margin: 0; font: 700 22px/1.1 var(--f-pix); letter-spacing: .04em; }
+.ver-x { background: none; border: 0; color: var(--muted); font-size: 26px; line-height: 1; cursor: pointer; }
+.ver-x:hover { color: var(--text); }
+.ver-cur { color: var(--muted); font-size: 13px; margin: 4px 0 12px; }
+.ver-item { border-top: 1px solid var(--line); padding: 10px 0 2px; }
+.ver-item h3 { font: 700 16px/1.3 var(--f-pix); margin: 0 0 4px; }
+.ver-item h3 span { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 6px; }
+.ver-item h3 .ver-tip { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); vertical-align: 2px; }
+.ver-tip.t-x { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.ver-tip.t-y { color: var(--brand-text); border-color: var(--brand); }
+.ver-item ul { margin: 0 0 8px; padding-left: 1.2em; }
+.ver-item li { margin: 2px 0; font-size: 14px; }
+
+/* --- igra: platno levo, kartice desno (samo desktop) --- */
+.dk-wrap { max-width: 1680px; margin: 0 auto; padding: 18px 16px 24px; display: flex; gap: 22px; justify-content: center; align-items: flex-start; }
+.dk-stage { flex: none; background: #000; border-radius: 18px; padding: 10px; border: 1px solid #2e3439;
+  box-shadow: 0 0 0 1px rgb(240 162 59 / .28), 0 0 34px rgb(240 162 59 / .12), 0 14px 40px rgb(0 0 0 / .35); }
+/* visina po prozoru, ali i po širini: rekordi levo (270) i kartice desno (310) moraju da stanu pored platna */
+#game { display: block; height: min(clamp(480px, calc(100vh - 150px), 1024px), calc((100vw - 720px) * 256 / 224)); width: auto; aspect-ratio: 224 / 256; image-rendering: pixelated; border-radius: 8px; }
+:fullscreen #game { height: min(calc(100vh - 140px), calc((100vw - 720px) * 256 / 224)); }
+
+.dk-side { width: 310px; flex: none; display: flex; flex-direction: column; gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); }
+.card h2 { margin: 0 0 10px; font: 700 17px/1.1 var(--f-pix); letter-spacing: .08em; text-transform: uppercase; color: var(--brand-text); }
+.dk-btns { display: flex; gap: 10px; }
+.dk-btns .btn { flex: 1; height: 40px; font: inherit; font-size: 14px; cursor: pointer; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+.sw-row { display: flex; gap: 22px; margin-top: 14px; }
+.sw-row .sw { margin-top: 0; }
+.sw { display: flex; align-items: center; gap: 10px; margin-top: 14px; cursor: pointer; font-weight: 600; font-size: 14px; user-select: none; }
+.sw input { position: absolute; opacity: 0; pointer-events: none; }
+.sw-track { width: 40px; height: 22px; border-radius: 999px; background: var(--surface2); border: 1px solid var(--line); position: relative; transition: background .15s; }
+.sw-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); transition: transform .15s, background .15s; }
+.sw input:checked + .sw-track { background: var(--brand); border-color: var(--brand); }
+.sw input:checked + .sw-track::after { transform: translateX(18px); background: var(--brand-ink); }
+.sw input:focus-visible + .sw-track { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.keys { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.keys td { padding: 4px 0; vertical-align: middle; }
+.keys td:first-child { white-space: nowrap; padding-right: 10px; width: 1%; }
+kbd { display: inline-block; min-width: 24px; padding: 1px 6px; margin-right: 3px; border-radius: 6px; border: 1px solid var(--line); border-bottom-width: 2px;
+  background: var(--surface2); color: var(--text); font: 600 12px/18px var(--f-mono); text-align: center; }
+.how { margin: 0; padding-left: 1.1em; font-size: 12.5px; }
+.how li { margin: 3px 0; }
+
+/* Rekordi: leva kolona, stalno na vidiku; tabela kao na arkadi (mesto, tri slova, poeni) */
+.dk-left { width: 270px; flex: none; position: sticky; top: 18px; display: flex; flex-direction: column; gap: 14px; }
+.rek-card h2 { font-size: 19px; }
+#rek ol { margin: 0; padding: 0; list-style: none; counter-reset: r; }
+#rek li { counter-increment: r; display: grid; grid-template-columns: 22px 46px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: baseline;
+  padding: 6px 8px; margin: 0 -8px; border-top: 1px solid var(--line); border-radius: 8px; }
+#rek li:first-child { border-top-color: transparent; }
+#rek li::before { content: counter(r) "."; grid-row: 1 / 3; color: var(--muted); font-weight: 700; font-size: 13px; }
+#rek li:first-child::before { color: var(--brand-text); }
+#rek .ini { font: 600 19px/1.1 var(--f-mono); letter-spacing: .1em; color: var(--brand-text); }
+#rek .pts { font: 600 15px/1.1 var(--f-mono); text-align: right; }
+#rek .meta { grid-column: 2 / 4; color: var(--muted); font-size: 11.5px; }
+#rek li.new { background: rgb(240 162 59 / .16); border-top-color: transparent; }
+#rek li.new + li { border-top-color: transparent; }
+#rek p { margin: 0; font-size: 14px; }
+.rek-hint { margin: 12px 0 0; font-size: 12px; color: var(--muted); }
+/* Privatnost: isti tekst kao u igrama Punkman i „E ne'š kolega!!!“ (ovde još i tema) */
+.priv p { margin: 0 0 8px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+.priv p:last-child { margin-bottom: 0; }
+
+/* ───────────── Dugmad u UnderGRAND stilu (kao u Statistici): blagi preliv, „dubina“ ispod, spuste se na klik; glavna su narandžasta ───────────── */
+:root { --b-top: #efebe4; --b-bot: #f8f6f2; --b-hover: #e6e0d5; --b-line: #c3bcae; --b-shadow: #cdc6b8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --b-top: #262b30; --b-bot: #1e2226; --b-hover: #30363c; --b-line: #444b52; --b-shadow: #07090a; } }
+:root[data-theme="dark"] { --b-top: #262b30; --b-bot: #1e2226; --b-hover: #30363c; --b-line: #444b52; --b-shadow: #07090a; }
+.btn {
+  border: 1px solid var(--b-line); background: linear-gradient(var(--b-top), var(--b-bot)); color: var(--text);
+  border-radius: 999px; box-shadow: 0 3px 0 var(--b-shadow); font-weight: 600;
+  transition: transform .06s, box-shadow .06s, background .15s;
+}
+.btn:hover:not(:disabled) { background: linear-gradient(var(--b-hover), var(--b-top)); }
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--b-shadow); }
+.btn.primary { border-color: #f7b65e; background: linear-gradient(#f7b65e, #d8871f); color: #1b1206; font-weight: 700; }
+.btn.primary:hover { background: linear-gradient(#ffc574, #F0A23B); border-color: #ffc574; color: #1b1206; }
+
+/* Nenadležni primat: opis likova i napomena o satiri */
+.cast { list-style: none; padding-left: 0; }
+.note { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); font-style: italic; }
