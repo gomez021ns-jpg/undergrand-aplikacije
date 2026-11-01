@@ -4,6 +4,10 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.4.0", datum: "2026-11-01", izmene: [
+      "Demo kao na arkadi: ako niko ne krene u roku od 10 sekundi, panker 20 sekundi igra sam (redom Podrum, Klub i Grad), pa se igra vraća na početni ekran. Enter ili razmak usred dema odmah pokreće pravu igru, a bilo koji drugi taster ili klik vraća na početni ekran. Demo je bez zvuka i ne ulazi u rekorde.",
+      "Svi flajeri preko table (početak, kraj svirke, upis rekorda, sledeća tabla) su sada poravnati na sredinu. Ako posle kraja svirke 5 sekundi ništa ne pritisneš, igra se vraća na početni ekran i pušta demo (upis tri slova za rekorde čeka koliko treba).",
+    ] },
     { v: "1.3.2", datum: "2026-10-31", izmene: [
       "Novi okvir „Privatnost“ desno, ispod rekorda: igra ne prikuplja ničije podatke, nema praćenja, reklama ni kolačića za praćenje, a rekordi i podešavanja ostaju samo u pregledaču na tvom računaru.",
       "Sređen izgled: listovi više nisu nakrivljeni i ništa ne štrči van ivica; Postava i Turneja su ispod table jedna pored druge; pojačalo i bonusi su u istom redu, sa natpisima kao u skoru.",

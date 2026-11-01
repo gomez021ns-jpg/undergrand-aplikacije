@@ -4,6 +4,9 @@
 // Oznaka vrste (Novi deo / Novo / Dorada) računa se sama iz broja.
 (() => {
   const VERZIJE = [
+    { v: "1.0.2", datum: "2026-11-01", izmene: [
+      "Ako posle kraja igre 5 sekundi ništa ne pritisneš, igra se vraća na početni ekran, a demo kreće posle 2 sekunde. Upis tri slova za rekorde čeka koliko treba.",
+    ] },
     { v: "1.0.1", datum: "2026-11-01", izmene: [
       "Ispravka: tri slova u rekordima i pri upisu sada su jasna. U pikselskom fontu „G“ je ličilo na „Q“, pa slova sada idu istim mirnim fontom kao poeni.",
     ] },

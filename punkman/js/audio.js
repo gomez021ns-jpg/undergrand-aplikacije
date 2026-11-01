@@ -17,6 +17,7 @@ function tone(f,dur,type,vol,f2,delay){
   g.gain.setValueAtTime(vol||.05,t0); g.gain.exponentialRampToValueAtTime(.0001,t0+dur); o.connect(g).connect(OUT); o.start(t0); o.stop(t0+dur+.02);
 }
 function sfx(k){
+  if(demo) return; // demo je nem, kao na arkadi
   if(k==='waka'){ waka^=1; tone(waka?220:330,.06,'square',.035); }
   else if(k==='power'){ tone(82,.7,'sawtooth',.07,660); tone(123,.7,'sawtooth',.05,990); }
   else if(k==='eat'){ tone(300,.25,'square',.06,1200); }

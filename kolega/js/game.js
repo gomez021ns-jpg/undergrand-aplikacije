@@ -465,7 +465,7 @@ function ctl(){
 function addScore(n){
   score+=n;
   while(score>=nextLife){ nextLife+=LIFE_EVERY; lives++; popup(player.x+6,PLAYER_Y-8,'+1 ŽIVOT','#3ddc84'); sfx('life'); }
-  if(score>hi){ hi=score; try{ localStorage.setItem('kolega-hi',hi); }catch(e){} }
+  if(score>hi && !demo){ hi=score; try{ localStorage.setItem('kolega-hi',hi); }catch(e){} }
   updHud();
 }
 function popup(x,y,text,color){ popups.push({x,y,text,color:color||'#f1efe8',t:1.5}); }
@@ -493,6 +493,7 @@ function newGame(from){
 // ---------- UPDATE ----------
 function update(dt){
   stateT+=dt; clock+=dt;
+  if(idleCheck(dt)) return;
   for(const p of popups) p.t-=dt; popups=popups.filter(p=>p.t>0);
   for(const f of fx) f.t-=dt; fx=fx.filter(f=>f.t>0);
   if(banner){ banner.t-=dt; if(banner.t<=0) banner=null; }
@@ -502,7 +503,7 @@ function update(dt){
   for(const d of decals) d.t-=dt; decals=decals.filter(d=>d.t>0);
   if(form) for(const e of form.list){ if(e.flash>0) e.flash-=dt; if(e.spawn>0) e.spawn=Math.max(0,e.spawn-dt); }
   const moving=state==='play'||state==='intro'||state==='ready'||state==='bossintro'||state==='clear'||state==='levelclear';
-  const k=ctl(); // tasteri (sa kašnjenjem dok svetli lampica Megakrkan Ometača)
+  const k=demo?demoKeys():ctl(); // tasteri (sa kašnjenjem dok svetli lampica Megakrkan Ometača)
   if(moving){ player.x=Math.max(4,Math.min(GW-16,player.x+((k.R?1:0)-(k.L?1:0))*PLAYER_SPEED*dt)); }
   if(boss) updBoss(dt);
 
@@ -513,6 +514,7 @@ function update(dt){
   if(state==='levelclear'){ if(stateT>=3.6) startLevel(level+1); return; }
   if(state==='dying'){
     if(stateT>=1.9){
+      if(demo) return endDemo();
       lives--; if(invaded) lives=0;
       if(lives<=0){ state='over'; Mus.playing=false; sfx('over'); endGame(); }
       else { player.x=(GW-12)/2; setState('ready'); }
@@ -543,6 +545,55 @@ function update(dt){
     if(low>GH*2/3){ noiseCD-=dt; if(noiseCD<=0){ noiseCD=rand(3,6); noiseT=.45; sfx('sum'); } }
   }
   if(mode==='wave' && state==='play' && aliveCount()===0){ setState('clear'); sfx('wave'); bullets=[]; }
+}
+
+// ---------- DEMO (kao na arkadi) ----------
+// Posle DEMO_WAIT s na naslovnom ekranu igra igra sama DEMO_LEN s (ili dok „igrač“ ne izgubi život), bez zvuka i rekorda.
+// Kraj igre: posle END_WAIT s bez pritiska nazad na naslovni ekran, a demo kreće posle još DEMO_SOON s. Upis tri slova ne ističe.
+const DEMO_WAIT=10, DEMO_LEN=20, END_WAIT=5, DEMO_SOON=2;
+let demo=false, demoN=0, idleT=0;
+function idleCheck(dt){
+  if(demo){ idleT+=dt; if(idleT>=DEMO_LEN && state!=='dying'){ endDemo(); return true; } return false; }
+  const blocked=Boot.active || document.hidden || document.querySelector('dialog[open]');
+  if(state==='title' && !blocked){ idleT+=dt; if(idleT>=DEMO_WAIT){ startDemo(); return true; } }
+  else if((state==='over'||state==='won') && !blocked && !$('ini')){ idleT+=dt; if(idleT>=END_WAIT){ toTitle(); idleT=DEMO_WAIT-DEMO_SOON; return true; } }
+  return false;
+}
+function startDemo(){
+  demo=true; idleT=0; hideOv();
+  score=0; lives=1; nextLife=Infinity; killed=[]; sol=0; pwMsg=null; invaded=false; won=false; fx=[]; popups=[]; keys.L=keys.R=keys.F=false;
+  startLevel(demoN++%LEVELS.length); updPw();
+}
+function endDemo(){ demo=false; toTitle(); }
+function toTitle(){
+  score=0; lives=START_LIVES; nextLife=LIFE_EVERY; boss=null; sol=0; pwMsg=null; won=false; fx=[]; popups=[];
+  level=0; Mus.setLevel(0); startWave(0); setState('title'); banner=null; showTitle(); updHud(); updPw();
+}
+// „Igrač“ u demu: beži od hitaca i batinaša koji mu idu u susret, inače staje ispod najbližeg neprijatelja do kog rif može (bez zaklona između) i puca.
+const aiOpen=x=>{ for(let y=SHIELD.y;y<SHIELD.y+SHIELD.h;y++) if(shieldHit(Math.round(x),y)) return false; return true; };
+function demoKeys(){
+  const k={L:false,R:false,F:false}, pc=player.x+6;
+  let threat=null, td=1e9;
+  for(const b of bullets){
+    if(b.dead||b.stuck>0) continue; const B=BULLET[b.kind], dy=PLAYER_Y-(b.y+B.h);
+    if(dy>-2 && dy<48 && Math.abs(b.x-pc)<B.w/2+9 && dy<td){ td=dy; threat=b.x; }
+  }
+  if(form) for(const e of form.list) if(e.alive && e.dive && e.dive.ph==='down'){
+    const dy=PLAYER_Y-e.dive.y; if(dy<70 && Math.abs(e.dive.x+6-pc)<18 && dy<td){ td=dy; threat=e.dive.x+6; }
+  }
+  if(threat!==null){ let d=threat>pc?-1:1; if((d<0 && player.x<20) || (d>0 && player.x>GW-36)) d=-d; k[d<0?'L':'R']=true; return k; }
+  let tx=null, best=1e9;
+  for(const open of [true,false]){
+    if(form) for(const e of form.list){
+      if(!e.alive||e.spawn>0) continue; const [ex,ey]=epos(e), cx=ex+6+(e.dive?0:form.dir*2);
+      if(open && !aiOpen(cx)) continue; const d=Math.abs(cx-pc)-ey*.4; if(d<best){ best=d; tx=cx; }
+    }
+    if(tx!==null) break;
+  }
+  if(tx===null && boss) tx=boss.x+(boss.cfg.w||68)/2;
+  if(tx===null) return k;
+  const dx=tx-pc; if(Math.abs(dx)>2) k[dx<0?'L':'R']=true; if(Math.abs(dx)<=4) k.F=true;
+  return k;
 }
 
 // ---------- CRTANJE ----------
@@ -650,6 +701,7 @@ function render(){
   if(state==='ready') text('U ETRU!',GW/2,GH*.55,13,'#ffc93c');
   if(state==='clear') text('TALAS ODBIJEN!',GW/2,GH*.45,14,'#ffc93c');
   if(state==='bossdead' && stateT>.6) text({pecat:'PEČAT PONIŠTEN!',ometac:'ANTENA OBORENA!'}[boss.kind]||'MEGAKRKAN UGAŠEN!',GW/2,GH*.45,14,'#ffc93c');
+  if(demo){ text('DEMO',GW/2,GH*.6,12,'#ffc93c'); if(Math.floor(clock*2)%2===0) text('Enter ili razmak za igru',GW/2,GH*.6+10,6.5,'#f1efe8'); }
   if(state==='paused'){
     ctx.fillStyle='rgba(11,13,16,.6)'; ctx.fillRect(0,0,GW,GH);
     text('PAUZA',GW/2,GH/2-6,20,'#f1efe8'); text('pritisni P ili dodirni igralište',GW/2,GH/2+12,7,'#aab1bc');
@@ -704,14 +756,13 @@ function renderWaves(){
 
 // ---------- PREKRIVAČI ----------
 let ovAct=null;
-function showOv(html,act){ ov.innerHTML=`<div class="card">${html}</div>`; ov.hidden=false; const b=ov.querySelector('.go'); if(b){ b.onclick=e=>{ e.stopPropagation(); act(); }; setTimeout(()=>b.focus({preventScroll:true}),30); } ovAct=act; }
+function showOv(html,act){ ov.innerHTML=`<div class="card center">${html}</div>`; idleT=0; ov.hidden=false; const b=ov.querySelector('.go'); if(b){ b.onclick=e=>{ e.stopPropagation(); act(); }; setTimeout(()=>b.focus({preventScroll:true}),30); } ovAct=act; }
 function hideOv(){ ov.hidden=true; ovAct=null; }
 function showTitle(){
   showOv(`<h2>${MSG.title}</h2>
   <p>Ti si odašiljač UnderGRAND radija. Ćaci TV, batinaši, botovi, inspektori i ometači hoće da ugase signal. Svaki nivo ima tri talasa, a na kraju bosa.</p>
   <button class="go" type="button">Uključi odašiljač</button>
   <span class="small">Enter ili razmak za start · strelice + razmak za igru</span>`, newGame);
-  ov.querySelector('.card').classList.add('center');
 }
 const lvName=r=>'nivo '+((r.l||0)+1), whereRek=r=>r.w?((r.l||0)>=2?'sva 3 nivoa pređena':lvName(r)+' pređen'):lvName(r)+' · '+(r.t>=3?'bos':'talas '+(r.t+1));
 const curRek=()=>({l:level,t:mode==='boss'?LV().waves.length:wave,w:won?1:0});
@@ -768,6 +819,8 @@ const KEYMAP={ArrowLeft:'L',a:'L',A:'L',ArrowRight:'R',d:'R',D:'R',' ':'F'};
 addEventListener('keydown',e=>{
   if(document.querySelector('dialog[open]')) return; // prozor „Šta je novo“ je otvoren
   if(Boot.active){ e.preventDefault(); if(!e.repeat) Boot.key(e.key); return; } // uvodna špica
+  idleT=0;
+  if(demo){ e.preventDefault(); const go=e.key==='Enter'||e.key===' '; endDemo(); if(go) newGame(); return; } // Enter ili razmak: prava igra; ostalo: naslovni ekran
   if(e.target.closest && e.target.closest('input')){ if(e.key==='Enter' && ovAct){ e.preventDefault(); ovAct(); } return; } // kucanje tri slova
   if((e.key==='Enter'||e.key===' ') && ovAct){ e.preventDefault(); if(!e.repeat) ovAct(); return; }
   const k=KEYMAP[e.key];
@@ -780,14 +833,15 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{ const k=KEYMAP[e.key]; if(k) keys[k]=false; });
 addEventListener('blur',()=>{ keys.L=keys.R=keys.F=false; });
 function togglePause(){ if(state==='play') state='paused'; else if(state==='paused') state='play'; }
-stage.addEventListener('pointerdown',()=>{ if(Boot.active) Boot.key('click'); else if(state==='paused') togglePause(); });
+stage.addEventListener('pointerdown',()=>{ if(Boot.active) Boot.key('click'); else if(demo) endDemo(); else if(state==='paused') togglePause(); });
+addEventListener('pointerdown',()=>{ idleT=0; },true);
 // dugmad za telefon: drži levo/desno, PUCAJ
 const pad=$('pad');
 pad.addEventListener('pointerdown',e=>{ const b=e.target.closest('button'); if(!b) return; e.preventDefault(); initAudio(); keys[b.dataset.k]=true; b.classList.add('on'); b.setPointerCapture?.(e.pointerId); });
 const padUp=e=>{ const b=e.target.closest&&e.target.closest('button'); if(!b||!pad.contains(b)) return; keys[b.dataset.k]=false; b.classList.remove('on'); };
 pad.addEventListener('pointerup',padUp); pad.addEventListener('pointercancel',padUp); pad.addEventListener('lostpointercapture',padUp);
-document.addEventListener('click',e=>{ if(e.target.closest('[data-verzije]') && state==='play') state='paused'; });
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && state==='play') state='paused'; });
+document.addEventListener('click',e=>{ if(e.target.closest('[data-verzije]')){ if(demo) endDemo(); else if(state==='play') state='paused'; } });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && demo) endDemo(); else if(document.hidden && state==='play') state='paused'; });
 $('mute').onclick=()=>{ initAudio(); toggleMute(); };
 $('music').onclick=()=>{ initAudio(); toggleMusic(); };
 $('next').onclick=()=>{ initAudio(); Mus.skip(); };
@@ -804,7 +858,7 @@ function frame(now){
   if(Boot.active){ Mus.playing=false; Boot.frame(dt); requestAnimationFrame(frame); return; } // uvodna špica (js/intro.js)
   if(state!=='paused') update(dt);
   // muzika: svira dok traje igra, na pauzi i posle gubitka života stoji; tempo blago raste kako stroj opada
-  Mus.playing=['intro','play','clear','ready','bossintro','bossdead','levelclear'].includes(state);
+  Mus.playing=!demo && ['intro','play','clear','ready','bossintro','bossdead','levelclear'].includes(state);
   Mus.rate=mode==='boss'?(boss&&boss.phase===2?1.35:1):1+.1*(1-(form?aliveCount()/form.total:1));
   Mus.tick();
   render();

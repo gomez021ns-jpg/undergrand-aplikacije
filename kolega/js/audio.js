@@ -30,6 +30,7 @@ const HIT_SFX={
   ometac:()=>{ tone(500,.2,'sawtooth',.04,2400); noise(.15,.04,2500); },              // fijuk
 };
 function sfx(k,arg){
+  if(demo) return; // demo je nem, kao na arkadi
   if(k==='rif'){ tone(330,.1,'sawtooth',.035,140); tone(495,.08,'square',.02,210); noise(.05,.025,2400); }
   else if(k==='hit') (HIT_SFX[arg]||HIT_SFX.bot)();
   else if(k==='batinas1'){ tone(110,.1,'square',.06,80); noise(.06,.06,350,'lowpass'); }

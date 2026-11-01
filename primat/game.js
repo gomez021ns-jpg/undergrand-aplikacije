@@ -478,6 +478,10 @@
   // Naizmenično nivo 1 i nivo 2; bez zvuka i muzike, ne broji se u rekorde. Enter/Space ili „Nova igra“ odmah kreće pravu igru.
   let demo = false, demoT = 0, demoN = 0;
   const DEMO_WAIT = 600, DEMO_LEN = 900; // koraci od 1/60 s
+  // Kraj igre: posle END_WAIT koraka bez pritiska nazad na naslovni ekran, a demo kreće posle još DEMO_SOON (korisnik 1. 11. 2026).
+  // Upis tri slova ne ističe.
+  const END_WAIT = 300, DEMO_SOON = 120;
+  let overIdle = 0;
   const DEMO_ROUTE = { barrels: [184, 104, 112, 80, 184, 128], belts: [24, 32, 24, 72, 32] }; // merdevine po spratu
   function startDemo() {
     demo = true; demoT = 0;
@@ -592,7 +596,7 @@
   const canStart = () => state === "title" || demo || (state === "over" && st > 60);
   addEventListener("keydown", (e) => {
     if (blocked() || e.ctrlKey || e.altKey || e.metaKey) return;
-    Snd.unlock();
+    Snd.unlock(); overIdle = 0;
     if (state === "name") return nameKey(e);
     const k = KEYMAP[e.code];
     if (k) { K[k] = true; e.preventDefault(); return; }
@@ -1015,6 +1019,8 @@
     if (paused) return;
     st++;
     if (state === "title" && st > DEMO_WAIT && !blocked() && !document.hidden) return startDemo();
+    if (state !== "over" || blocked() || document.hidden) overIdle = 0;
+    else if (++overIdle > END_WAIT) { endDemo(); st = DEMO_WAIT - DEMO_SOON; return; }
     if (demo && ++demoT > DEMO_LEN) return endDemo();
     if (state === "ready" && st > 100) { state = "play"; st = 0; emit(); }
     else if (state === "play") play();
