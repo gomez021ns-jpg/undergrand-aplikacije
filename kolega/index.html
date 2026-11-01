@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UnderGRAND E ne'š kolega!!!</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="ug-logo-link" href="https://undergrandradio.com" target="_blank" rel="noopener" title="UnderGRAND radio"><img class="ug-logo" src="assets/logo.png" alt="UnderGRAND"></a>
+    <div class="ug-title">
+      <div class="ug-title-row"><h1 class="ug-name">E NE'Š KOLEGA<em>!!!</em></h1><button class="ug-ver" type="button" data-verzije title="Šta je novo"></button></div>
+      <p class="ug-slogan">UPOMOĆ!</p>
+    </div>
+    <div class="ug-actions">
+      <button class="btn" id="music" type="button">Muzika: uklj.</button>
+      <span class="song" id="song" aria-live="polite">Svira: -</span>
+      <button class="btn" id="next" type="button" title="Sledeća pesma (B)">Sledeća pesma</button>
+      <button class="btn" id="mute" type="button">Zvuk: uklj.</button>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div class="stage" id="stage">
+      <canvas id="cv" aria-label="Igralište"></canvas>
+      <div class="ov" id="ov"></div>
+    </div>
+
+    <div class="pad" id="pad">
+      <button type="button" data-k="L" aria-label="Levo">◀</button>
+      <button type="button" data-k="F" class="fire">PUCAJ</button>
+      <button type="button" data-k="R" aria-label="Desno">▶</button>
+    </div>
+    <p class="keys">Strelice ili A/D kretanje · razmak puca · P pauza · M zvuk · N muzika · B sledeća pesma</p>
+
+    <section class="panel level-panel">
+      <h2 id="lvl-h">Nivo 1 <small>Desk udarnih vesti</small></h2>
+      <ol class="waves" id="waves"></ol>
+      <h3>Bonusi <small>ispadaju iz pogođenih, uhvati ih</small></h3>
+      <div id="powers" class="cast"></div>
+    </section>
+
+    <div class="side">
+      <div class="hud" aria-live="off">
+        <div class="wide"><span class="lab">Skor</span><b id="score">0</b></div>
+        <div class="wide"><span class="lab">Rekord</span><b id="hi">0</b></div>
+        <div class="wide"><span class="lab">Životi</span><span id="lives"></span></div>
+        <div><span class="lab">Nivo</span><b id="lvl">1</b></div>
+        <div><span class="lab">Talas</span><b id="wave">1/3</b></div>
+      </div>
+      <div class="pw-box" id="pwbox"><span class="lab">Bonus</span><span id="pw">nema</span></div>
+
+      <section class="panel">
+        <h2>Postava <small>ko napada</small></h2>
+        <div id="cast" class="cast"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Rekordi <small>deset najboljih</small></h2>
+        <ol class="rek" id="rek"></ol>
+        <p class="rek-hint">Ko na kraju igre uđe među deset najboljih, upisuje svoja tri slova.</p>
+      </section>
+
+      <section class="panel priv">
+        <h2>Privatnost</h2>
+        <p>Igra ne prikuplja ničije podatke: nema naloga, praćenja, reklama ni kolačića za praćenje, i ništa se ne šalje na internet.</p>
+        <p>Rekordi, tvoja tri slova i podešavanja zvuka i muzike čuvaju se samo u ovom pregledaču, na ovom računaru. Kad u pregledaču obrišeš podatke sajtova, brišu se i oni.</p>
+      </section>
+    </div>
+  </div>
+  <footer class="credit">Igra <a href="https://undergrandradio.com" target="_blank" rel="noopener">UnderGRAND radija</a> · undergrandradio.com</footer>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/music.js"></script>
+<script src="js/intro.js"></script>
+<script src="js/game.js"></script>
+<script src="verzije.js"></script>
+<script src="punekran.js"></script>
+</body>
+</html>
