@@ -1,10 +1,10 @@
 // Punkman — crtanje likova, predmeta i bonusa na canvas (bez slika).
 // ---------- DRAW HELPERS ----------
 function drawPin(c,x,y,s,a,col){
-  c.save(); c.translate(x,y); c.rotate(a); c.strokeStyle=col; c.lineWidth=Math.max(1,s*.055); c.lineCap='round';
+  c.save(); c.translate(x,y); c.rotate(a); c.strokeStyle=col; c.lineWidth=Math.max(1.4,s*.08); c.lineCap='round';
   c.beginPath(); c.moveTo(-s*.17,0); c.lineTo(s*.15,-s*.045); c.moveTo(-s*.17,0); c.lineTo(s*.13,s*.035); c.stroke();
-  c.beginPath(); c.arc(-s*.17,0,s*.04,0,7); c.stroke();
-  c.fillStyle=col; c.fillRect(s*.12,-s*.07,s*.07,s*.1); c.restore();
+  c.beginPath(); c.arc(-s*.17,0,s*.045,0,7); c.stroke();
+  c.fillStyle=col; c.fillRect(s*.12,-s*.075,s*.08,s*.11); c.restore();
 }
 const BADGE_COLS=['#ff2d7a','#ffd400','#3b6cff','#f1eef2','#41d18a'];
 function drawBadge(c,x,y,s,col){ c.fillStyle=col; c.beginPath(); c.arc(x,y,s*.13,0,7); c.fill(); c.fillStyle='#131115'; c.beginPath(); c.arc(x,y,s*.05,0,7); c.fill(); }
@@ -85,6 +85,8 @@ function drawGhost(c,x,y,s,g,t,flash){
     const n=3, w=2*r/n, ph=Math.sin(t*12)*r*.12;
     for(let i=0;i<n;i++){ const x0=x+r-i*w; c.quadraticCurveTo(x0-w*.5,y+r*.92-r*.32+ph*(i%2?1:-1),x0-w,y+r*.92); }
     c.closePath(); c.fill();
+    // tanka tamna kontura: duh se ne stapa sa tamnim podom ni sa svetlim ivicama zidova
+    c.strokeStyle='rgba(9,8,11,.9)'; c.lineWidth=Math.max(1,s*.05); c.stroke();
   }
   if(fr && !eyesOnly){
     c.fillStyle='#131115';

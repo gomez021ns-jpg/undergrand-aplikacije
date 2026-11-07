@@ -222,6 +222,36 @@
     return { w, h, n: mk(false), f: mk(true) };
   }
   function put(sp, x, y, flip = false, sc = 1) { c.drawImage(flip ? sp.f : sp.n, Math.round(x), Math.round(y), sp.w * sc, sp.h * sc); }
+  // sličica razvučena po osama (squash & stretch): stopala ostaju na istom mestu
+  function putXY(sp, x, y, flip, sx, sy) {
+    const w = sp.w * sx, h = sp.h * sy;
+    c.drawImage(flip ? sp.f : sp.n, Math.round(x - (w - sp.w) / 2), Math.round(y - (h - sp.h)), w, h);
+  }
+  // Senka ispod likova (blok, providna) i čestice (prašina, varnice) — od 1.1.1
+  function senka(x, y, rx, alfa = 0.3) {
+    c.fillStyle = `rgba(0,0,0,${alfa})`;
+    const X = Math.round(x), Y = Math.round(y), R = Math.max(1, Math.round(rx));
+    c.fillRect(X - R + 1, Y - 1, R * 2 - 2, 3);
+    c.fillRect(X - R, Y, R * 2, 1);
+  }
+  let deljci = [], tres = 0;
+  function prasina(x, y, n = 6, col = "#cdbfae") {
+    for (let i = 0; i < n; i++)
+      deljci.push({ x, y, vx: rnd(-0.7, 0.7), vy: rnd(-1.1, -0.2), t: 0, ziv: Math.round(rnd(12, 26)), col, s: Math.random() < 0.4 ? 2 : 1 });
+  }
+  function updDeljci() {
+    if (!deljci.length) return;
+    for (const d of deljci) { d.t++; d.x += d.vx; d.y += d.vy; d.vy += 0.06; }
+    deljci = deljci.filter((d) => d.t < d.ziv);
+  }
+  function crtajDeljce() {
+    for (const d of deljci) {
+      c.globalAlpha = Math.max(0, 1 - d.t / d.ziv);
+      c.fillStyle = d.col;
+      c.fillRect(Math.round(d.x), Math.round(d.y), d.s, d.s);
+    }
+    c.globalAlpha = 1;
+  }
 
   SP.stand = bake([...MARIO_TOP,
     "..OOTTTTT...",
@@ -301,16 +331,77 @@
     "..RRR..",
     "...R...",
   ], { R: "#ff3a6e" });
-  SP.girder = bake([
-    "LLLLLLLL",
-    "GG....GG",
-    ".GG..GG.",
-    "...GG...",
-    "...GG...",
-    ".GG..GG.",
-    "GG....GG",
-    "GGGGGGGG",
-  ], { G: "#d8304f", L: "#ff7088" });
+  // ---------- Teme po nivou: boje greda i pozadine (od 1.1.0) ----------
+  // Svaki nivo ima svoju paletu, pa se odmah vidi gde si. Pozadina je namerno tamna da likovi ostanu čitljivi.
+  const TEME = {
+    barrels: { grede: ["#8f2d3f", "#c65d78"], nebo: ["#1a0c16", "#050309"], silueta: "#2a1222", tip: "zgrada" },   // 1 FAKULTET
+    belts: { grede: ["#2f5a52", "#57a08f"], nebo: ["#08161a", "#020608"], silueta: "#0e2b2c", tip: "dimnjaci" },  // 2 FABRIKA
+    lifts: { grede: ["#4a2f6b", "#8055b8"], nebo: ["#0d0a1a", "#03020a"], silueta: "#1c1633", tip: "okno" },     // 3 LIFT
+    rivets: { grede: ["#7a3a1d", "#bb7a44"], nebo: ["#180d06", "#070301"], silueta: "#2c1708", tip: "tribine" },  // 4 TRIBINA
+  };
+  const tema = () => TEME[stage.kind] || TEME.barrels;
+
+  const gredeCache = {};
+  function grede() { // pločice greda u bojama nivoa (8×8, keš po nivou)
+    const k = stage.kind;
+    if (!gredeCache[k]) gredeCache[k] = bake([
+      "LLLLLLLL",
+      "GG....GG",
+      ".GG..GG.",
+      "...GG...",
+      "...GG...",
+      ".GG..GG.",
+      "GG....GG",
+      "GGGGGGGG",
+    ], { G: tema().grede[0], L: tema().grede[1] });
+    return gredeCache[k];
+  }
+
+  const pozadinaCache = {};
+  function pozadina() { // nebo, silueta u drugom planu i vinjeta; crta se jednom po nivou pa se samo lepi
+    const k = stage.kind;
+    if (pozadinaCache[k]) return pozadinaCache[k];
+    const t = tema();
+    const o = document.createElement("canvas");
+    o.width = W * S; o.height = H * S;
+    const x = o.getContext("2d");
+    x.setTransform(S, 0, 0, S, 0, 0);
+    const g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, t.nebo[0]); g.addColorStop(0.55, t.nebo[1]); g.addColorStop(1, t.nebo[0]);
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.fillStyle = t.silueta;
+    if (t.tip === "zgrada") {          // institucija: zabat, stupovi, osvetljeni prozori
+      x.fillRect(52, 104, 120, 152);
+      x.beginPath(); x.moveTo(46, 104); x.lineTo(112, 74); x.lineTo(178, 104); x.closePath(); x.fill();
+      x.fillRect(46, 100, 132, 6);
+      for (let i = 0; i < 6; i++) x.fillRect(56 + i * 21, 110, 4, 146);
+      x.fillStyle = t.grede[0];
+      for (let i = 0; i < 4; i++) for (let j = 0; j < 5; j++) x.fillRect(60 + j * 21, 126 + i * 30, 5, 10);
+    } else if (t.tip === "dimnjaci") { // fabrika: hale i dimnjaci
+      x.fillRect(0, 150, W, 106);
+      for (const [cx, h] of [[20, 96], [66, 70], [146, 112], [192, 84]]) {
+        x.fillRect(cx, H - h - 22, 15, h); x.fillRect(cx - 2, H - h - 22, 19, 5);
+      }
+      x.fillStyle = t.grede[0];
+      for (let i = 0; i < 6; i++) x.fillRect(12 + i * 36, 172, 14, 9);
+    } else if (t.tip === "okno") {     // lift: okno sa rešetkom i velikim točkom gore
+      x.fillRect(94, 0, 36, H);
+      for (let y = 4; y < H; y += 13) x.fillRect(94, y, 36, 2);
+      x.beginPath(); x.arc(112, 128, 24, 0, Math.PI * 2); x.fill();
+      x.fillStyle = t.grede[0];
+      for (let y = 18; y < H; y += 26) x.fillRect(108, y, 8, 8);
+    } else {                           // tribine: stepenice i siluete publike
+      for (let i = 0; i < 7; i++) x.fillRect(0, 142 + i * 16, W, 5);
+      for (let i = 0; i < 24; i++) x.fillRect(5 + i * 9, 136 + (i % 7) * 16, 4, 6);
+      x.fillStyle = t.grede[0];
+      for (let i = 0; i < 12; i++) x.fillRect(9 + i * 18, 138 + (i % 7) * 16, 2, 2);
+    }
+    const v = x.createRadialGradient(W / 2, H * 0.42, H * 0.28, W / 2, H * 0.42, H * 0.92);
+    v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.72)");
+    x.fillStyle = v; x.fillRect(0, 0, W, H);
+    pozadinaCache[k] = o;
+    return o;
+  }
 
   // ---------- Zvuk (Web Audio, kratki tonovi kao na arkadi) ----------
   const Snd = {
@@ -532,6 +623,7 @@
   function die() {
     if (state !== "play") return;
     state = "dying"; st = 0; m.st = "dead"; m.hammer = 0;
+    tres = 14; prasina(m.x, m.y - 4, 10, "#e8e2d6");
     sfx.death();
   }
   function afterDeath() {
@@ -642,6 +734,7 @@
   }
   function land(s) { // Mario staje na deo grede s
     m.s = s; m.f = s.f; m.y = surf(s, m.x); m.st = "walk";
+    prasina(m.x, m.y, 4);
     if (m.f === stage.goal) win();
   }
   // Zakovica se vadi kad Mario pređe preko nje (hodom ili skokom) i siđe sa nje na bilo koju stranu.
@@ -981,6 +1074,7 @@
         if (hb && hit(hb, eb)) {
           e.gone = true;
           pops.push({ x: e.x, y: ey - 5, t: 0, boom: true });
+          prasina(e.x, ey - 6, 8, "#ffd23a"); tres = 5;
           addScore([300, 300, 500, 800][Math.floor(Math.random() * 4)], e.x, ey - 12);
           sfx.smash();
           continue;
@@ -1013,6 +1107,7 @@
   }
   function tick() {
     T++;
+    updDeljci();
     // muzika svira samo dok se igra (ne na pauzi, pri gubitku života, pobedi ni na kraju)
     Mus.play(state === "play" && !paused && !demo ? (m.hammer ? "hammer" : stage.kind) : null);
     Mus.tick();
@@ -1033,6 +1128,30 @@
   // ---------- Crtanje ----------
   const FUR = "#a3471a", FURD = "#5e260b", TAN = "#f3c48d";
   function ell(x, y, rx, ry, col) { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); }
+  // Piksel oblici: sve u celim pikselima i bez zaglađivanja, pa se Kralj i burad poklapaju sa piksel-sličicama
+  // (Blokader i Institucijana su „pečeni“ iz mreže). Ivica je tamna kao na sličicama.
+  function ellPix(cx, cy, rx, ry, col, ivica) {
+    const X = Math.round(cx), Y = Math.round(cy);
+    const krug = (boja, prirast) => {
+      const w = Math.max(1, Math.round(rx) + prirast), h = Math.max(1, Math.round(ry) + prirast);
+      c.fillStyle = boja;
+      for (let dy = -h; dy <= h; dy++) {
+        const k = Math.sqrt(Math.max(0, 1 - (dy / (h + 0.5)) ** 2));
+        const sir = Math.round(w * k);
+        if (sir > 0) c.fillRect(X - sir, Y + dy, sir * 2, 1);
+      }
+    };
+    if (ivica) krug(ivica, 1);
+    krug(col, 0);
+  }
+  function limbPix(x0, y0, x1, y1, deb = 4, ivica = FURD) { // ruka/noga: blok po blok, sa šakom na kraju
+    const n = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+    c.fillStyle = ivica;
+    for (let i = 0; i <= n; i++) c.fillRect(Math.round(x0 + (x1 - x0) * i / n) - deb / 2 - 1, Math.round(y0 + (y1 - y0) * i / n) - deb / 2 - 1, deb + 2, deb + 2);
+    c.fillStyle = FUR;
+    for (let i = 0; i <= n; i++) c.fillRect(Math.round(x0 + (x1 - x0) * i / n) - deb / 2, Math.round(y0 + (y1 - y0) * i / n) - deb / 2, deb, deb);
+    ellPix(x1, y1, 3, 2, TAN, FURD);
+  }
   function limb(x0, y0, x1, y1) {
     c.strokeStyle = FUR; c.lineWidth = 6; c.lineCap = "round";
     c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
@@ -1072,7 +1191,7 @@
     }
     for (let x = s.x1; x < s.x2; x += 8) { // poslednja pločica se seče na kraju dela grede
       const w = Math.min(8, s.x2 - x), y = Math.round(surf(s, x + w / 2));
-      c.drawImage(SP.girder.n, 0, 0, w * S, 8 * S, x, y, w, 8);
+      c.drawImage(grede().n, 0, 0, w * S, 8 * S, x, y, w, 8);
     }
     if (!s.belt) return;
     // traka: tamna površina sa svetlim crticama koje putuju u smeru trake, valjci na krajevima
@@ -1163,13 +1282,16 @@
       c.fillStyle = "#e0b53a"; c.fillRect(x - 2, y + 3, 4, 1); c.fillRect(x - 1, y + 5, 2, 1);
     }
   }
-  function barrelUp(x, y) { // uspravno bure (gomila pored Donkey Konga)
+  function barrelUp(x, y) { // uspravno bure (gomila pored Kralja), sa tankom tamnom ivicom
+    c.fillStyle = "#3b1e08"; c.fillRect(x - 1, y - 1, 10, 12);
     c.fillStyle = "#c8742c"; c.fillRect(x, y, 8, 10);
     c.fillStyle = "#6b3510"; c.fillRect(x, y + 1, 8, 1); c.fillRect(x, y + 8, 8, 1);
     c.fillStyle = "#f0b070"; c.fillRect(x + 2, y + 3, 1, 4);
   }
   function barrelFront(cx, by, blue) {
     const x = Math.round(cx - 8), t = Math.round(by - 10);
+    c.fillStyle = blue ? "#0b2452" : "#3b1e08"; // ivica
+    c.fillRect(x - 1, t + 1, 18, 8); c.fillRect(x, t, 16, 10);
     c.fillStyle = blue ? "#2d6bff" : "#c8742c"; c.fillRect(x + 1, t, 14, 10); c.fillRect(x, t + 1, 16, 8);
     c.fillStyle = blue ? "#123a9c" : "#6b3510"; c.fillRect(x, t + 2, 16, 1); c.fillRect(x, t + 7, 16, 1);
     c.fillStyle = blue ? "#9cc4ff" : "#f0b070"; c.fillRect(x + 3, t + 4, 10, 1);
@@ -1177,14 +1299,17 @@
   function drawBarrel(b) {
     const y = b.y + b.hz;
     if (b.st === "ladder" || b.st === "drop") return barrelFront(b.x, y, b.blue);
+    senka(b.x, y, 6, 0.26);
     const x = Math.round(b.x - 6), t = Math.round(y - 10);
+    c.fillStyle = b.blue ? "#0b2452" : "#3b1e08"; // tanka tamna ivica, kao na sličicama
+    c.fillRect(x + 1, t - 1, 10, 12); c.fillRect(x - 1, t + 1, 14, 8);
     c.fillStyle = b.blue ? "#2d6bff" : "#c8742c"; c.fillRect(x + 1, t, 10, 10); c.fillRect(x, t + 1, 12, 8);
     c.fillStyle = b.blue ? "#123a9c" : "#6b3510"; c.fillRect(x + 2, t, 1, 10); c.fillRect(x + 9, t, 1, 10);
-    // svetla pruga se pomera dok se bure kotrlja
-    const k = Math.floor(b.rot / 3) % 4;
-    const row = b.dir > 0 ? k : 3 - k;
-    c.fillStyle = b.blue ? "#9cc4ff" : "#f0b070"; c.fillRect(x + 3, t + 1 + row * 2, 6, 1);
-    c.fillStyle = b.blue ? "#123a9c" : "#6b3510"; c.fillRect(x + 3, t + 1 + ((row + 2) % 4) * 2, 6, 1);
+    // svetla pruga se pomera dok se bure kotrlja: 8 položaja umesto 4, pa je kotrljanje glatkije
+    const k = Math.floor(b.rot / 2) % 8;
+    const pol = b.dir > 0 ? k : (8 - k) % 8;
+    c.fillStyle = b.blue ? "#9cc4ff" : "#f0b070"; c.fillRect(x + 3, t + 1 + Math.round(pol * 0.85), 6, 1);
+    c.fillStyle = b.blue ? "#123a9c" : "#6b3510"; c.fillRect(x + 3, t + 1 + Math.round(((pol + 4) % 8) * 0.85), 6, 1);
   }
   function drawPie(p) { // svežanj tabloida: crveni naslov, sivi redovi
     const x = Math.round(p.x - 5), t = Math.round(p.y - 6);
@@ -1196,67 +1321,90 @@
   function drawFire(f) { // bot: siva glava sa antenom, crvene oči, nožice
     const x = Math.round(f.x), y = Math.round(f.y - 1 - ((T >> 3) % 2));
     const leg = (T >> 3) % 2;
+    senka(x, f.y, 4, 0.26);
     c.fillStyle = "#c9d2dc"; c.fillRect(x - 0.5, y - 11, 1, 2);
     c.fillStyle = (T >> 4) % 2 ? "#ff4a3d" : "#ffd23a"; c.fillRect(x - 1, y - 12, 2, 1);
+    c.fillStyle = "#2b3138"; c.fillRect(x - 5, y - 10, 10, 9); c.fillRect(x - 6, y - 8, 12, 5); // tamna ivica glave
     c.fillStyle = "#9aa3ad"; c.fillRect(x - 4, y - 9, 8, 7);
     c.fillStyle = "#5f6670"; c.fillRect(x - 4, y - 3, 8, 1);
     c.fillStyle = "#ff4a3d"; c.fillRect(x - 3 + (f.dir > 0 ? 1 : 0), y - 7, 2, 2); c.fillRect(x + 1 + (f.dir > 0 ? 1 : 0), y - 7, 2, 2);
     c.fillStyle = "#1a1010"; c.fillRect(x - 2, y - 4, 4, 1);
     c.fillStyle = "#5f6670"; c.fillRect(x - 3 + leg, y - 2, 1, 2); c.fillRect(x + 2 - leg, y - 2, 1, 2);
+    // dim iz antene s vremena na vreme (sat se pomera po botu, da ne dimi svima u isto)
+    const faza = (T + Math.round(f.x) * 7) % 160;
+    if (faza < 26) {
+      const k = faza / 26;
+      c.fillStyle = `rgba(190,200,210,${(0.55 * (1 - k)).toFixed(2)})`;
+      c.fillRect(x - 1, y - 16 - Math.round(k * 6), 3, 3);
+    }
   }
   function drawPauline() {
     const wave = state === "play" && Math.floor(T / 20) % 2 === 0;
     const gy = floorY(stage.paul.f ?? stage.goal, stage.paul.x + 6);
-    put(wave ? SP.paulWave : SP.paul, stage.paul.x, gy - 21);
+    const bob = wave ? 0 : Math.floor(T / 26) % 2; // lagano diše dok ne maše
+    senka(stage.paul.x + 6, gy, 7, 0.28);
+    put(wave ? SP.paulWave : SP.paul, stage.paul.x, gy - 21 - bob);
     if ((state === "play" || state === "ready") && Math.floor(T / 40) % 3 !== 0) txt("VRATI ME!", stage.help.x, stage.help.y, "#fff", "left", 6);
     if (state === "win") put(SP.heart, stage.heart.x, stage.heart.y - (st < 20 ? (20 - st) / 4 : 0));
   }
   function drawDK() {
     const fall = state === "win" && stage.kind === "rivets" ? Math.max(0, st - 30) ** 2 * 0.02 : 0; // 100 m: DK propada
-    const cx = Math.round(dk.x), by = Math.round(floorY(stage.dk.f, dk.x) + fall);
+    const sway = dk.pose === "grab" ? ((T >> 4) % 2 ? 1 : -1) : 0; // ljuljanje pre bacanja
+    const cx = Math.round(dk.x) + sway, by = Math.round(floorY(stage.dk.f, dk.x) + fall);
     let pose = dk.pose;
     if (state === "win" || state === "dying") pose = "beat";
     if (pose === "idle" && (T % 240) < 60) pose = "beat";
     if (state === "title" && (T % 180) < 70) pose = "beat";
-    const up = Math.floor(T / 8) % 2;
-    // noge i telo (u 50 m korača dok šeta)
-    const step = (stage.kind === "belts" || stage.kind === "rivets") && state === "play" ? (Math.floor(T / 10) % 2 ? 1.5 : -1.5) : 0;
-    ell(cx - 10, by - 5 - Math.max(0, step), 7, 5, FUR); ell(cx + 10, by - 5 - Math.max(0, -step), 7, 5, FUR);
-    ell(cx - 13, by - 1.6, 5, 2, TAN); ell(cx + 13, by - 1.6, 5, 2, TAN);
-    ell(cx, by - 15, 15, 11, FUR);
-    ell(cx, by - 14, 9, 7.5, TAN);
-    // glava
-    ell(cx, by - 28, 9, 8, FUR);
-    ell(cx - 8, by - 28, 2.5, 3, TAN); ell(cx + 8, by - 28, 2.5, 3, TAN);
-    ell(cx, by - 25, 7, 5, TAN);
-    ell(cx - 3, by - 30, 2.4, 2.4, "#fff"); ell(cx + 3, by - 30, 2.4, 2.4, "#fff");
-    c.fillStyle = "#000"; c.fillRect(cx - 3, by - 30, 1.4, 1.6); c.fillRect(cx + 2, by - 30, 1.4, 1.6);
-    c.fillStyle = FURD; c.fillRect(cx - 6, by - 33.6, 5, 1.4); c.fillRect(cx + 1, by - 33.6, 5, 1.4);
+    // noge i telo (u 50 m i na tribinama korača dok šeta); sve u celim pikselima
+    const step = (stage.kind === "belts" || stage.kind === "rivets") && state === "play" ? (Math.floor(T / 10) % 2 ? 2 : -2) : 0;
+    senka(cx, by, 13, 0.32);
+    ellPix(cx - 7, by - 5 - Math.max(0, step), 5, 4, FUR, FURD);
+    ellPix(cx + 7, by - 5 - Math.max(0, -step), 5, 4, FUR, FURD);
+    ellPix(cx - 8, by - 1, 5, 2, TAN, FURD);
+    ellPix(cx + 8, by - 1, 5, 2, TAN, FURD);
+    ellPix(cx, by - 16, 13, 10, FUR, FURD);
+    ellPix(cx, by - 14, 6, 5, TAN, FURD);
+    // glava, uši i njuška
+    ellPix(cx, by - 27, 9, 8, FUR, FURD);
+    ellPix(cx - 8, by - 27, 2, 3, TAN, FURD);
+    ellPix(cx + 8, by - 27, 2, 3, TAN, FURD);
+    ellPix(cx, by - 25, 6, 4, TAN, FURD);
+    // oči (s vremena na vreme trepne), obrve
+    const trepce = (T + 61) % 330 < 10;
+    c.fillStyle = "#fff"; c.fillRect(cx - 5, by - 31, 3, 3); c.fillRect(cx + 2, by - 31, 3, 3);
+    c.fillStyle = trepce ? FURD : "#14100c";
+    if (trepce) { c.fillRect(cx - 5, by - 30, 3, 1); c.fillRect(cx + 2, by - 30, 3, 1); }
+    else { c.fillRect(cx - 4, by - 30, 2, 2); c.fillRect(cx + 2, by - 30, 2, 2); }
+    c.fillStyle = FURD; c.fillRect(cx - 6, by - 33, 4, 1); c.fillRect(cx + 2, by - 33, 4, 1);
     // kruna Kralja ćacija (lik iz stripa, ne liči ni na koga stvarnog)
-    c.fillStyle = "#ffd23a"; c.fillRect(cx - 6, by - 38, 12, 3);
-    c.fillRect(cx - 6, by - 41, 2, 3); c.fillRect(cx - 1, by - 42, 2, 4); c.fillRect(cx + 4, by - 41, 2, 3);
-    c.fillStyle = "#e8402a"; c.fillRect(cx - 1, by - 37, 2, 1);
-    c.fillRect(cx - 2, by - 26.8, 1, 1); c.fillRect(cx + 1, by - 26.8, 1, 1);
-    if (pose === "beat") { ell(cx, by - 23, 4, 2, "#3a1405"); c.fillStyle = "#fff"; c.fillRect(cx - 3, by - 24.4, 6, 1); }
-    else { c.fillStyle = "#3a1405"; c.fillRect(cx - 4, by - 23.4, 8, 1.4); }
-    // ruke
-    if (pose === "beat") {
-      limb(cx - 12, by - 21, cx - 5, by - (up ? 19 : 13));
-      limb(cx + 12, by - 21, cx + 5, by - (up ? 13 : 19));
+    c.fillStyle = "#c99a12"; c.fillRect(cx - 7, by - 36, 14, 4);
+    c.fillStyle = "#ffd23a";
+    c.fillRect(cx - 6, by - 37, 12, 3);
+    c.fillRect(cx - 6, by - 40, 2, 3); c.fillRect(cx - 1, by - 41, 2, 4); c.fillRect(cx + 4, by - 40, 2, 3);
+    c.fillStyle = "#e8402a"; c.fillRect(cx - 1, by - 36, 2, 1);
+    // nozdrve i usta
+    c.fillStyle = FURD; c.fillRect(cx - 2, by - 27, 1, 1); c.fillRect(cx + 1, by - 27, 1, 1);
+    c.fillStyle = "#3a1405"; c.fillRect(cx - 3, by - 24, 6, pose === "beat" ? 2 : 1);
+    if (pose === "beat") { c.fillStyle = "#fff"; c.fillRect(cx - 3, by - 24, 6, 1); }
+    // ruke (blok po blok, sa šakama)
+    if (pose === "beat") {           // udara u grudi: šake se smenjuju gore-dole
+      const gore = (T >> 3) % 2 === 0;
+      limbPix(cx - 10, by - 20, cx - (gore ? 5 : 8), by - (gore ? 19 : 12));
+      limbPix(cx + 10, by - 20, cx + (gore ? 8 : 5), by - (gore ? 12 : 19));
     } else if (pose === "grab") {
-      limb(cx - 12, by - 20, cx - 24, by - 10);
-      limb(cx + 12, by - 21, cx - 20, by - 19);
+      limbPix(cx - 10, by - 19, cx - 20, by - 12);
+      limbPix(cx + 10, by - 19, cx - 16, by - 17);
     } else if (pose === "hold") {
-      if (stage.kind === "lifts") drawSpring(cx + 25, by - 8, false); else barrelFront(cx + 25, by - 8, false);
-      limb(cx - 12, by - 21, cx + 18, by - 17);
-      limb(cx + 12, by - 20, cx + 32, by - 14);
+      if (stage.kind === "lifts") drawSpring(cx + 26, by - 8, false); else barrelFront(cx + 26, by - 8, false);
+      limbPix(cx - 10, by - 20, cx + 16, by - 17);
+      limbPix(cx + 10, by - 19, cx + 30, by - 15);
     } else if (pose === "drop") {
-      limb(cx - 12, by - 20, cx - 7, by - 8);
-      limb(cx + 12, by - 20, cx + 7, by - 8);
+      limbPix(cx - 10, by - 19, cx - 7, by - 9);
+      limbPix(cx + 10, by - 19, cx + 7, by - 9);
       barrelFront(cx, by - 2, true);
     } else {
-      limb(cx - 12, by - 20, cx - 18, by - 6);
-      limb(cx + 12, by - 20, cx + 18, by - 6);
+      limbPix(cx - 10, by - 19, cx - 15, by - 7);
+      limbPix(cx + 10, by - 19, cx + 15, by - 7);
     }
   }
   function drawStack() {
@@ -1277,9 +1425,11 @@
       return;
     }
     if (m.st === "climb") return put(SP.climb, x, y, Math.floor(m.climb / 8) % 2 === 1);
+    senka(m.x, m.y, 5, 0.3);
     const moving = K.left || K.right;
     const sp = m.st === "jump" ? SP.walk : moving && Math.floor(m.walk / 6) % 2 ? SP.walk : SP.stand;
-    put(sp, x, y, flip);
+    if (m.st === "jump") { const sy = m.vy < 0 ? 1.08 : 0.94; putXY(sp, x, y, flip, 2 - sy, sy); } // u skoku se izduži, pri padu spljošti
+    else put(sp, x, y, flip);
     if (m.hammer) { // pištaljka na ustima, talasi zvižduka ispred (pred kraj crveni)
       const f = m.face, mx = Math.round(m.x + f * 5), my = Math.round(m.y - 12);
       c.fillStyle = "#ffd23a"; c.fillRect(f > 0 ? mx : mx - 3, my, 3, 2);
@@ -1380,7 +1530,9 @@
     if (paused) box([["PAUZA", "#F0A23B"], ["P ili ENTER - nastavi", "#fff", 7]]);
   }
   function draw() {
-    c.fillStyle = "#000"; c.fillRect(0, 0, W, H);
+    c.save();
+    if (tres > 0) { tres--; c.translate(Math.round(rnd(-2, 2)), Math.round(rnd(-2, 1))); } // tresenje pri udaru
+    c.drawImage(pozadina(), 0, 0, W, H);
     drawShafts();
     for (const l of lads) drawLadder(l);
     for (const s of segs) drawSeg(s);
@@ -1388,7 +1540,8 @@
     drawStack(); drawPauline(); drawDK();
     barrels.forEach(drawBarrel); pies.forEach(drawPie); fires.forEach(drawFire);
     springs.forEach((s) => drawSpring(s.x, s.y, s.sq > 0));
-    drawMario(); drawPops(); hud(); overlay();
+    drawMario(); drawPops(); crtajDeljce(); hud(); overlay();
+    c.restore();
   }
 
   // ---------- Petlja ----------

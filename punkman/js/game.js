@@ -3,12 +3,13 @@
 const $=id=>document.getElementById(id);
 const cv=$('cv'), ctx=cv.getContext('2d'), stage=$('stage'), ov=$('ov');
 const mazeCv=document.createElement('canvas'), mctx=mazeCv.getContext('2d');
+const glowCv=document.createElement('canvas'), gctx=glowCv.getContext('2d'); // neon odsjaj ivica dok traje pojačalo
 let ts=20, dpr=1;
 const segs=$('segs'); for(let i=0;i<11;i++) segs.appendChild(document.createElement('i'));
 // ---------- STATE ----------
 let grid, start, pelletsLeft, totalPellets, EXIT_X, EXIT_Y, HOUSE_Y, TUN_Y=-1, TUN_L=0, TUN_R=W-1, eatenCount, level=0, loop=0, score=0, hi=0, lives=3, nextLife=LIFE_EVERY;
 let state='title', stateT=0, frightT=0, modeIdx=0, modeT=0, freezeT=0, shakeT=0, bannerT=0;
-let player, ghosts=[], bonus=null, popups=[], combo=0, killer=null, collected=[false,false,false];
+let player, ghosts=[], bonus=null, popups=[], sparks=[], combo=0, killer=null, collected=[false,false,false];
 try{ hi=+localStorage.getItem('punkman-hi')||0; }catch(e){}
 // Rekordi: deset najboljih {i: tri slova, s: poeni, l: tabla (0-2), k: krug, d: datum, id} - korisnikovi podaci, ne brisati.
 const REK_MAX=10, REK_KEY='punkman-rekordi', IME_KEY='punkman-ime';
@@ -134,10 +135,16 @@ function addScore(n){
   if(score>hi && !demo){ hi=score; try{localStorage.setItem('punkman-hi',hi)}catch(e){} }
   updHud();
 }
+function varnice(x,y,col,n=5){ // iskre u ćeliji (x,y): varnice pri jelu i pri pojedenom duhu
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, v=.9+Math.random()*1.7;
+    sparks.push({x:x+.5,y:y+.5,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,ziv:.20+Math.random()*.18,col,r:.05+Math.random()*.06});
+  }
+}
 function eat(x,y){
   const c=grid[y][x];
-  if(c==='.'){ grid[y][x]=' '; pelletsLeft--; eatenCount++; addScore(10); sfx('waka'); player.stall=1/60; }
-  else if(c==='o'){ grid[y][x]=' '; pelletsLeft--; eatenCount++; addScore(50); power(); player.stall=3/60; }
+  if(c==='.'){ grid[y][x]=' '; pelletsLeft--; eatenCount++; addScore(10); sfx('waka'); player.stall=1/60; varnice(x,y,level===0?'#cfd6de':'#fff',4); }
+  else if(c==='o'){ grid[y][x]=' '; pelletsLeft--; eatenCount++; addScore(50); power(); player.stall=3/60; varnice(x,y,'#ffd400',9); }
   else return;
   if(eatenCount===Math.round(totalPellets*.3)||eatenCount===Math.round(totalPellets*.6)){ bonus={x:start[0],y:start[1],t:9}; }
   if(pelletsLeft===0){ setState('clear'); sfx('clear'); }
@@ -158,6 +165,8 @@ function update(dt){
   stateT+=dt;
   if(idleCheck(dt)) return;
   for(const p of popups) p.t-=dt; popups=popups.filter(p=>p.t>0);
+  for(const s of sparks){ s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vx*=.90; s.vy*=.90; }
+  sparks=sparks.filter(s=>s.t<s.ziv);
   if(bannerT>0) bannerT-=dt; if(shakeT>0) shakeT-=dt;
   if(state==='ready'){ if(stateT>=2) setState('play'); return; }
   if(state==='dying'){ if(stateT>=1.8){ if(demo) return endDemo(); lives--; if(lives<=0){ state='over'; endGame(); } else { resetActors(); setState('ready'); } updHud(); } return; }
@@ -192,7 +201,7 @@ function collide(){
     if(dx+Math.abs(g.y-player.y)<.7){
       if(g.fright){
         g.fright=false; g.state='eyes'; const pts=200*2**combo; combo=Math.min(combo+1,3);
-        addScore(pts); popup(g.x,g.y,pts+' '+g.eaten,'#ff2d7a'); freezeT=.45; sfx('eat');
+        addScore(pts); popup(g.x,g.y,pts+' '+g.eaten,'#ff2d7a'); varnice(Math.round(g.x),Math.round(g.y),'#ff2d7a',9); freezeT=.45; sfx('eat');
       } else { die(g); return true; }
     }
   }
@@ -215,11 +224,12 @@ function renderMaze(){
     if(level===1 && (x+y)%2===0){ c.fillStyle='rgba(255,255,255,.022)'; c.fillRect(x*s,y*s,s,s); }
     if(level===2 && y%4===1){ c.fillStyle='rgba(255,176,0,.03)'; c.fillRect(x*s+s*.3,y*s+s*.45,s*.4,s*.08); }
   }
-  const lw=Math.max(1.5,s*.12), wall=(x,y)=>{ if(y<0||y>=H||x<0||x>=W) return true; const ch=grid[y][x]; return ch==='#'||ch==='X'; };
+  const lw=Math.max(2,s*.16), wall=(x,y)=>{ if(y<0||y>=H||x<0||x>=W) return true; const ch=grid[y][x]; return ch==='#'||ch==='X'; };
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
     const ch=grid[y][x];
     if(ch==='#'){
       c.fillStyle=b.wall; c.fillRect(x*s,y*s,s+.5,s+.5);
+      c.fillStyle='rgba(255,255,255,.055)'; c.fillRect(x*s,y*s,s+.5,s+.5); // blago svetlije telo zida (lavirint se bolje vidi)
       if(level===2){ c.fillStyle='rgba(0,0,0,.18)'; c.fillRect(x*s,y*s+s*.48,s,s*.06); c.fillRect(x*s+((y%2)?s*.5:0),y*s,s*.06,s*.5); }
       c.fillStyle=b.edge;
       if(!wall(x,y-1)&&grid[y-1][x]!=='-') c.fillRect(x*s,y*s,s,lw);
@@ -227,10 +237,23 @@ function renderMaze(){
       if(!wall(x-1,y)) c.fillRect(x*s,y*s,lw,s);
       if(!wall(x+1,y)) c.fillRect((x+1)*s-lw,y*s,lw,s);
     } else if(ch==='-'){ c.fillStyle=b.door; c.fillRect(x*s,y*s+s*.4,s,s*.2); }
+    else { // senka uz zid: tamna traka na podu do zida, pa se zid odvaja od poda
+      const sh=Math.max(1.5,s*.18); c.fillStyle='rgba(0,0,0,.30)';
+      if(wall(x,y-1)) c.fillRect(x*s,y*s,s,sh);
+      if(wall(x,y+1)) c.fillRect(x*s,(y+1)*s-sh,s,sh);
+      if(wall(x-1,y)) c.fillRect(x*s,y*s,sh,s);
+      if(wall(x+1,y)) c.fillRect((x+1)*s-sh,y*s,sh,s);
+    }
   }
   // venue sign above the ghost house
   c.fillStyle=b.edge; c.globalAlpha=.55; c.font=`${Math.round(s*.55)}px 'Special Elite', monospace`; c.textAlign='center'; c.textBaseline='middle';
   c.fillText(b.short.toUpperCase(),W/2*s,(HOUSE_Y+1.5)*s); c.globalAlpha=1;
+  // mutna kopija table za neon odsjaj (koristi se dok traje pojačalo)
+  glowCv.width=mazeCv.width; glowCv.height=mazeCv.height;
+  gctx.setTransform(1,0,0,1,0,0); gctx.clearRect(0,0,glowCv.width,glowCv.height);
+  gctx.filter='blur(6px) brightness(1.55) saturate(1.5)';
+  gctx.drawImage(mazeCv,0,0);
+  gctx.filter='none';
 }
 function render(t){
   if(!grid) return; const s=ts, c=ctx, b=BOARDS[level];
@@ -239,10 +262,15 @@ function render(t){
   c.setTransform(1,0,0,1,sx*dpr,sy*dpr);
   const flashMaze=state==='clear' && Math.floor(stateT*5)%2===1;
   c.drawImage(mazeCv,0,0);
+  if(frightT>0){ // dok traje pojačalo, ivice zidova svetle (neon)
+    c.save(); c.globalCompositeOperation='lighter';
+    c.globalAlpha=.16+.10*Math.sin(t*9);
+    c.drawImage(glowCv,0,0); c.restore();
+  }
   if(flashMaze){ c.fillStyle='rgba(255,255,255,.18)'; c.fillRect(0,0,cv.width,cv.height); }
   c.setTransform(dpr,0,0,dpr,sx*dpr,sy*dpr);
   // pellets
-  const pc=level===0?'#c9ced4':level===2?'#e7e2d6':'#fff';
+  const pc=level===0?'#eaf0f6':level===2?'#f2ede2':'#fff';
   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
     const ch=grid[y][x], px=(x+.5)*s, py=(y+.5)*s;
     if(ch==='.'){
@@ -251,6 +279,12 @@ function render(t){
       else drawTape(c,px,py,s,pc);
     } else if(ch==='o') drawAmp(c,px,py,s,t,b.edge);
   }
+  // varnice (jelo, pojedeni duh)
+  for(const k of sparks){
+    c.globalAlpha=Math.max(0,1-k.t/k.ziv); c.fillStyle=k.col;
+    const r=Math.max(1,s*k.r); c.fillRect(k.x*s-r/2,k.y*s-r/2,r,r);
+  }
+  c.globalAlpha=1;
   if(bonus && (bonus.t>2 || Math.floor(bonus.t*6)%2===0)) drawBonus(c,b.bonus,(bonus.x+.5)*s,(bonus.y+.5)*s,s*1.05,t);
   // ghosts
   if(state!=='dying' || stateT<.6){
