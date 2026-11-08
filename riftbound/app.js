@@ -516,8 +516,14 @@
   function syncSortUI() {
     const b = $("#sort-dir"); if (!b) return;
     b.hidden = state.sort === "deck"; // špilovi idu redom kojim su kupljeni
-    b.textContent = state.sort === "name" ? (state.desc ? "Ž-A" : "A-Ž") : state.desc ? "↓" : "↑";
+    // Umesto znakova ↑/↓ (delovali su nezgrapno, korisnik 8. 11. 2026) ide tanka strelica koja se
+    // obrne kad je redosled opadajući; kod reda po imenu ostaju slova A-Ž / Ž-A.
+    b.innerHTML = state.sort === "name"
+      ? `<span class="sort-slova">${state.desc ? "Ž-A" : "A-Ž"}</span>`
+      : `<svg class="sort-chev" viewBox="0 0 11 7" aria-hidden="true"><path d="M1 1.3l4.5 4.4L10 1.3"/></svg>`;
+    b.classList.toggle("dole", !!state.desc && state.sort !== "name");
     b.title = (state.desc ? "Od najvećeg ka najmanjem" : "Od najmanjeg ka najvećem") + " - klikni za obrnuto";
+    b.setAttribute("aria-label", b.title);
   }
   function renderColl() {
     if (!sortAvail(state.sort)) { state.sort = "set"; state.desc = false; }

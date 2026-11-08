@@ -5,6 +5,12 @@
 // Nov unos ide NA VRH liste: datum, `nove` (šta je novo) i `dorade` (dorade i ispravke); oznaka vrste se računa sama.
 (() => {
   const VERZIJE = [
+    { datum: "2026-11-08",
+      nove: [],
+      dorade: [
+        "Strelica u padajućim menijima („Svi tipovi“, „Svi setovi“, „Ređaj po“) je sada tanka i uklopljena u pilulu umesto Windowsove, a dugme za smer redosleda je okruglo sa strelicom koja se obrne (ranije su tu bili znakovi ↑/↓) — obe stvari su delovale nezgrapno.",
+      ] },
+
     { datum: "2026-10-28",
       nove: [
         "Rezervna kopija i kao CSV fajl za Excel: u folderu save se posle svake izmene sam pravi riftbound-kolekcija.csv (kod, ime, set, tip, retkost, domen, broj primeraka i cena), a dugme „Sačuvaj kao CSV (Excel)“ ga čuva u Preuzimanja.",

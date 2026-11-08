@@ -112,15 +112,32 @@ a:hover { text-decoration: underline; }
 .btn.primary:hover { background: linear-gradient(#ffc574, #F0A23B); border-color: #ffc574; color: #1b1206; filter: none; }
 .btn.ghost, .btn.ghost:hover { background: transparent; border-color: transparent; box-shadow: none; color: var(--acc-text); }
 .btn.disabled { box-shadow: 0 3px 0 var(--b-shadow); }
-.pager-sel { border: 1px solid var(--b-line); background: linear-gradient(var(--b-top), var(--b-bot)); background-color: var(--b-bot); box-shadow: 0 3px 0 var(--b-shadow); color: var(--text); font-weight: 600; }
+.pager-sel { border: 1px solid var(--b-line); background-image: linear-gradient(var(--b-top), var(--b-bot)), var(--chev); background-color: var(--b-bot); background-repeat: no-repeat; background-position: 0 0, right 13px center; background-size: auto, 10px 6px; box-shadow: 0 3px 0 var(--b-shadow); color: var(--text); font-weight: 600; padding-right: 32px; }
 /* Otvoren spisak ne nasleđuje prelaz boja iz pozadine, pa bi na Windowsu bio beo sa svetlim slovima - boje stavki se zadaju izričito. */
 .pager-sel option, .pager-sel optgroup { background-color: var(--surface); color: var(--text); font-weight: 500; }
+
+/* Padajući meniji: Windowsova strelica u piluli izgleda nezgrapno (korisnik, 8. 11. 2026), pa je
+   sklanjamo (appearance: none) i crtamo tanku strelicu kao pozadinsku sliku. Zato sva pravila za
+   select koriste background-color (ne skraćeno `background:`), da ne obrišu ovu sliku. */
+select {
+  appearance: none; -webkit-appearance: none;
+  background-image: var(--chev);
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  background-size: 10px 6px;
+  padding-right: 32px;
+  cursor: pointer;
+}
+select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* ===================== Riftbound ===================== */
 :root {
   --fury: #d9483b; --calm: #3f9f69; --mind: #3f7fd0; --body: #e0812b; --chaos: #9257c9; --order: #c9a91f;
   --bad: #c2410c; --img-bg: #e7e2d8;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Tanka strelica za padajuće menije (vidi pravilo `select` iznad) — ovde da je mogu da koriste i pravila koja
+     imaju svoju pozadinsku sliku (npr. `.pager-sel` sa prelivom boja). */
+  --chev: url("data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%237b838a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bad: #f08a5d; --img-bg: #1e2226; } }
 :root[data-theme="dark"] { --bad: #f08a5d; --img-bg: #1e2226; }
@@ -156,11 +173,17 @@ button, input, select { font: inherit; color: inherit; }
 .rail { display: flex; flex-direction: column; gap: 14px; position: sticky; top: 70px; align-self: start; }
 @media (max-width: 760px) { .rail { position: static; } }
 .rail .label { display: block; margin-bottom: 5px; }
-.rail input[type=search], .rail select { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; }
+.rail input[type=search] { width: 100%; background-color: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; }
+.rail select { width: 100%; background-color: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 7px 32px 7px 14px; }
 .rail select option { background-color: var(--surface); color: var(--text); }
-.sort-row { display: flex; gap: 6px; }
+.sort-row { display: flex; gap: 6px; align-items: stretch; }
 .sort-row select { flex: 1; min-width: 0; }
-.sort-dir { flex: none; min-width: 46px; padding: 0 10px; font-weight: 800; }
+/* Dugme za smer redosleda: okruglo, sa tankom strelicom koja se obrne kad je redosled opadajući
+   (ranije su tu bili znakovi ↑/↓ i delovali su nezgrapno — korisnik, 8. 11. 2026). */
+.sort-dir { flex: none; width: 40px; min-width: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.sort-dir .sort-chev { width: 11px; height: 7px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; transition: transform .18s ease; }
+.sort-dir.dole .sort-chev { transform: rotate(180deg); }
+.sort-dir .sort-slova { font-size: 11px; font-weight: 700; letter-spacing: .01em; }
 .grid-h { grid-column: 1 / -1; padding: 12px 0 6px; border-bottom: 1px solid var(--line); }
 .grid-h:first-child { padding-top: 0; }
 .grid-h .label { color: var(--brand-text); }
@@ -175,7 +198,8 @@ button, input, select { font: inherit; color: inherit; }
 .booster-tools { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(180px, 1fr); gap: 12px; }
 .booster-tools label { min-width: 0; }
 .booster-tools .label { display: block; margin-bottom: 5px; }
-.booster-tools input, .booster-tools select, .add-qty input { width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.booster-tools input, .booster-tools select, .add-qty input { width: 100%; min-width: 0; background-color: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.booster-tools select { padding-right: 32px; }
 .booster-tools select option { background: var(--surface); color: var(--text); }
 .add-list { display: flex; flex-direction: column; gap: 8px; }
 /* „Uvezi spisak“ (od 1.7.0) */
@@ -380,7 +404,7 @@ button, input, select { font: inherit; color: inherit; }
 .miss-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .miss-tools { display: flex; gap: 12px; }
 .miss-tools label { display: flex; flex-direction: column; gap: 4px; }
-.miss-tools select { border-radius: 999px; padding: 6px 12px; }
+.miss-tools select { border-radius: 999px; padding: 6px 32px 6px 12px; }
 .miss-meta { font: 600 11.5px var(--mono); color: var(--muted); }
 .miss-meta b { color: var(--brand-text); }
 
