@@ -33,7 +33,7 @@ function loadLevel(i){
 }
 function resetActors(){
   const L=cfg();
-  player={x:start[0],y:start[1],dir:null,want:'L',wantT:99,last:'L',anim:0,stall:0};
+  player={x:start[0],y:start[1],dir:null,want:'L',wantN:99,last:'L',anim:0,stall:0};
   ghosts=GHOSTS.map((g,i)=>({...g,x:HOUSE_SLOTS[g.id]==null?EXIT_X:EXIT_X+HOUSE_SLOTS[g.id],y:HOUSE_SLOTS[g.id]==null?EXIT_Y:HOUSE_Y,hy:HOUSE_Y,dir:i===0?'L':'U',
     state:i===0?'active':'house',releaseT:L.release[i],bob:i,fright:false,rev:false,raid:0,raidCD:L.raid[0]+Math.random()*(L.raid[1]-L.raid[0]),whim:'player',whimT:2,t:0}));
   frightT=0; modeIdx=0; modeT=L.modes[0]; combo=0; popups=[];
@@ -77,6 +77,8 @@ function playerCenter(p){
   if(w && open(x+w[0],y+w[1])) p.dir=p.want;
   else if(p.dir){ const d=DIRS[p.dir]; if(!open(x+d[0],y+d[1])) p.dir=null; }
   if(p.dir) p.last=p.dir;
+  // Pušten taster se pamti WANT_TILES polja (ne sekunde): rano pritisnuto skretanje stigne do raskrsnice na svakoj brzini.
+  if(p.want && p.want!==p.dir && !held.size && --p.wantN<=0) p.want=null;
 }
 function ghostTarget(g){
   if(g.state==='eyes') return [EXIT_X,EXIT_Y];
@@ -178,7 +180,6 @@ function update(dt){
   if(frightT>0){ frightT-=dt; if(frightT<=0){ frightT=0; ghosts.forEach(g=>g.fright=false); } }
   else { modeT-=dt; if(modeT<=0 && modeIdx<L.modes.length-1){ modeIdx++; modeT=L.modes[modeIdx]; ghosts.forEach(g=>{if(g.state==='active')g.rev=true}); } }
   if(bonus){ bonus.t-=dt; if(bonus.t<=0) bonus=null; }
-  if(player.want && !held.size){ player.wantT-=dt; if(player.wantT<=0) player.want=null; }
   const sub=2;
   for(let s=0;s<sub;s++){
     if(player.stall>0) player.stall-=dt/sub;
@@ -469,12 +470,14 @@ function demoSteer(){
     if(sc>bs){ bs=sc; best=k; }
   }
   if(!best) return;
-  p.want=best; p.wantT=1; if(p.dir && best===OPP[p.dir]) p.dir=best;
+  p.want=best; p.wantN=WANT_TILES; if(p.dir && best===OPP[p.dir]) p.dir=best;
 }
 // ---------- INPUT ----------
-const KEYS={ArrowUp:'U',ArrowDown:'D',ArrowLeft:'L',ArrowRight:'R',w:'U',s:'D',a:'L',d:'R',W:'U',S:'D',A:'L',D:'R'};
+// Tasteri po položaju na tastaturi (e.code), pa W/A/S/D, P, M i N rade i na ćiriličnom ili drugom rasporedu.
+const KEYS={ArrowUp:'U',ArrowDown:'D',ArrowLeft:'L',ArrowRight:'R',KeyW:'U',KeyS:'D',KeyA:'L',KeyD:'R'};
+const WANT_TILES=8;
 const held=new Set();
-function want(d){ if(!player) return; player.want=d; player.wantT=.45; if(player.dir && d===OPP[player.dir]) player.dir=d; else if(state==='play') tryCorner(); }
+function want(d){ if(!player) return; player.want=d; player.wantN=WANT_TILES; if(player.dir && d===OPP[player.dir]) player.dir=d; else if(state==='play') tryCorner(); }
 // Cornering: a turn pressed up to ~half a tile before or after an opening still takes it.
 function tryCorner(){
   const p=player; if(!p.want||!p.dir||p.want===p.dir||p.want===OPP[p.dir]) return;
@@ -489,11 +492,11 @@ addEventListener('keydown',e=>{
   if(e.target.closest && e.target.closest('input')){ if(e.key==='Enter' && ovAct){ e.preventDefault(); ovAct(); } return; } // kucanje tri slova
   idleT=0;
   if(demo){ e.preventDefault(); const go=e.key==='Enter'||e.key===' '; endDemo(); if(go) newGame(); return; } // Enter ili razmak: prava igra; ostalo: naslovni ekran
-  if(KEYS[e.key]){ held.add(e.key); want(KEYS[e.key]); if(state!=='title') e.preventDefault(); }
+  if(KEYS[e.code]){ held.add(e.code); want(KEYS[e.code]); if(state!=='title') e.preventDefault(); }
   if((e.key==='Enter'||e.key===' ') && ovAct){ e.preventDefault(); const a=ovAct; a(); }
-  if(e.key==='p'||e.key==='P'||e.key==='Escape') togglePause();
-  if(e.key==='m'||e.key==='M') toggleMute();
-  if(e.key==='n'||e.key==='N'){ initAudio(); toggleMusic(); }
+  if(e.code==='KeyP'||e.key==='Escape') togglePause();
+  if(e.code==='KeyM') toggleMute();
+  if(e.code==='KeyN'){ initAudio(); toggleMusic(); }
 });
 function togglePause(){ if(state==='play'){ state='paused'; } else if(state==='paused'){ state='play'; } }
 let tStart=null;
@@ -502,7 +505,7 @@ addEventListener('pointerdown',()=>{ idleT=0; },true);
 stage.addEventListener('pointermove',e=>{ if(!tStart) return; const dx=e.clientX-tStart[0], dy=e.clientY-tStart[1];
   if(Math.hypot(dx,dy)>18){ want(Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U')); tStart=[e.clientX,e.clientY]; } });
 addEventListener('pointerup',()=>{ tStart=null; held.delete('pad'); });
-addEventListener('keyup',e=>held.delete(e.key));
+addEventListener('keyup',e=>held.delete(e.code));
 addEventListener('blur',()=>held.clear());
 $('pad').addEventListener('pointerdown',e=>{ const d=e.target.closest('button')?.dataset.d; if(d){ e.preventDefault(); held.add('pad'); want(d); } });
 document.addEventListener('click',e=>{ if(e.target.closest('[data-verzije]')){ if(demo) endDemo(); else if(state==='play') state='paused'; } });

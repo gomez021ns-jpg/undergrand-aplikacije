@@ -5,6 +5,10 @@
 // Nov unos ide NA VRH liste: datum, `nove` (šta je novo) i `dorade` (dorade i ispravke); oznaka vrste se računa sama.
 (() => {
   const VERZIJE = [
+    { datum: "2026-11-12", nove: [], dorade: [
+      "Bolji odziv tastera: smer pritisnut unapred (i do 7-8 polja pre skretanja) igra pamti dok panker ne stigne do raskrsnice, i kad pustiš taster. Ranije ga je zaboravljala posle pola sekunde, pa rano skretanje ume da „ne uhvati“.",
+      "W, A, S, D, P (pauza), M (zvuk) i N (muzika) rade na svakom rasporedu tastature, i na ćiriličnom.",
+    ] },
     { datum: "2026-11-07", nove: [
       "Varnice kad pojedeš zihadrnu, bedž ili duha.",
       "Ivice zidova svetle dok traje pojačalo (neon odsjaj preko cele table).",
