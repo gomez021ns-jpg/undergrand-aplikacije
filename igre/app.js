@@ -4,7 +4,9 @@
   const app = document.getElementById("app");
   const printRoot = document.getElementById("print-root");
 
+  // „Za početnike“ se vidi samo kod igre koja ima vodič (polje beginner).
   const TABS = [
+    { id: "pocetnici", label: "Za početnike", only: (g) => g.beginner.length > 0 },
     { id: "podsetnik", label: "Brzi podsetnik" },
     { id: "pravila", label: "Puna pravila" },
     { id: "kljucne-reci", label: "Ključne reči" },
@@ -207,7 +209,8 @@
 
   // ───────────── stranica igre ─────────────
   function renderGame(g, tab) {
-    if (!TABS.some((t) => t.id === tab)) tab = "podsetnik";
+    const tabs = TABS.filter((t) => !t.only || t.only(g));
+    if (!tabs.some((t) => t.id === tab)) tab = "podsetnik";
     document.title = `${g.title} - pravila`;
 
     app.innerHTML = `
@@ -229,6 +232,7 @@
           <div class="print-menu">
             <button class="btn btn-primary" id="print-btn" aria-haspopup="true" aria-expanded="false">Štampaj / PDF</button>
             <div class="print-pop" id="print-pop" hidden>
+              ${g.beginner.length ? `<button data-print="beginner"><b>Vodič za početnike</b><span>prva partija korak po korak</span></button>` : ""}
               <button data-print="quick"><b>Brzi podsetnik</b><span>1 strana, za sto</span></button>
               <button data-print="full"><b>Puna pravila</b><span>sva poglavlja + ključne reči</span></button>
               ${
@@ -244,7 +248,7 @@
         ${coverBanner(g)}
 
         <nav class="tabs" role="tablist">
-          ${TABS.map(
+          ${tabs.map(
             (t) => `<a role="tab" href="#/igra/${esc(g.id)}/${t.id}" class="tab${t.id === tab ? " active" : ""}" aria-selected="${t.id === tab}">${t.label}${
               tabCount(g, t.id) ? ` <span class="count">${tabCount(g, t.id)}</span>` : ""
             }</a>`
@@ -256,7 +260,7 @@
 
     bindTopbar();
     bindPrintMenu(g);
-    if (tab === "pravila") bindRulesSearch(g);
+    if (tab === "pravila" || tab === "pocetnici") bindRulesSearch(g);
     if (tab === "dodaci") bindJumpLinks();
     if (tab === "kljucne-reci") bindGlossarySearch();
     window.scrollTo(0, 0);
@@ -266,6 +270,8 @@
     switch (tab) {
       case "pravila":
         return rulesView(g);
+      case "pocetnici":
+        return rulesView(g, g.beginner, "Pretraži vodič…");
       case "kljucne-reci":
         return glossaryView(g);
       case "dodaci":
@@ -284,16 +290,17 @@
 
   const quickCard = (c) => `<article class="qcard"><h3>${esc(c.title)}</h3>${c.html}</article>`;
 
-  function rulesView(g) {
-    if (!g.rules.length) return `<p class="empty">Pravila još nisu dodata.</p>`;
+  // Puna pravila i vodič za početnike: isti prikaz (sadržaj levo, poglavlja, pretraga)
+  function rulesView(g, list = g.rules, placeholder = "Pretraži pravila…") {
+    if (!list.length) return `<p class="empty">Pravila još nisu dodata.</p>`;
     return `
       <div class="rules-layout">
         <aside class="toc">
-          <input id="rules-search" class="search search-sm" type="search" placeholder="Pretraži pravila…" autocomplete="off">
-          <ol>${g.rules.map((r) => `<li data-toc="${esc(r.id)}"><a href="#" data-jump="${esc(r.id)}">${esc(r.title)}</a></li>`).join("")}</ol>
+          <input id="rules-search" class="search search-sm" type="search" placeholder="${esc(placeholder)}" autocomplete="off">
+          <ol>${list.map((r) => `<li data-toc="${esc(r.id)}"><a href="#" data-jump="${esc(r.id)}">${esc(r.title)}</a></li>`).join("")}</ol>
         </aside>
         <div class="chapters">
-          ${g.rules.map((r, i) => chapter(r, i)).join("")}
+          ${list.map((r, i) => chapter(r, i)).join("")}
           <p id="rules-empty" class="empty" hidden>Ništa nije pronađeno. Probaj drugi termin ili pogledaj Ključne reči.</p>
           ${sourcesBlock(g)}
         </div>
@@ -546,13 +553,21 @@
       ? `<section class="p-full">${head("Dodaci")}${expansionsView(g)}</section>`
       : "";
 
-    const parts = { quick: [quick], full: [full], expansions: [expansions], all: [quick, full, expansions] }[mode] || [quick];
+    const beginner = g.beginner.length
+      ? `<section class="p-full">
+          ${head("Vodič za početnike")}
+          <nav class="p-toc"><h3>Sadržaj</h3><ol>${g.beginner.map((r) => `<li>${esc(r.title)}</li>`).join("")}</ol></nav>
+          ${g.beginner.map((r, i) => chapter(r, i)).join("")}
+        </section>`
+      : "";
+
+    const parts = { beginner: [beginner], quick: [quick], full: [full], expansions: [expansions], all: [quick, full, expansions] }[mode] || [quick];
     printRoot.innerHTML =
       parts.filter(Boolean).join("") + `<footer class="p-foot">Odštampano ${esc(date)} · UnderGRAND Društvene igre</footer>`;
     document.body.classList.add("printing");
 
     const prevTitle = document.title;
-    document.title = `${g.title} - ${{ quick: "podsetnik", full: "pravila", expansions: "dodaci", all: "kompletno" }[mode] || "pravila"}`;
+    document.title = `${g.title} - ${{ beginner: "vodic za pocetnike", quick: "podsetnik", full: "pravila", expansions: "dodaci", all: "kompletno" }[mode] || "pravila"}`;
     const cleanup = () => {
       document.body.classList.remove("printing");
       printRoot.innerHTML = "";

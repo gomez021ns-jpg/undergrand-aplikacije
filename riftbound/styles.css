@@ -95,8 +95,11 @@ a:hover { text-decoration: underline; }
 .ver-item h3 .ver-tip { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); vertical-align: 2px; }
 .ver-tip.t-x { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
 .ver-tip.t-y { color: var(--brand-text); border-color: var(--brand); }
-.ver-item ul { margin: 0 0 8px; padding-left: 1.2em; }
-.ver-item li { margin: 2px 0; font-size: 14px; }
+.ver-item ul { margin: 0 0 8px; padding-left: 0; list-style: none; }
+.ver-item li { margin: 2px 0; font-size: 14px; position: relative; padding-left: 1.4em; }
+.ver-item li::before { position: absolute; left: 0; top: 0; width: 1em; text-align: center; font-weight: 700; }
+.ver-item li.ver-novo::before { content: "+"; color: var(--brand-text); }
+.ver-item li.ver-dorada::before { content: "−"; color: var(--muted); }
 /* ───────────── Dugmad u UnderGRAND stilu (kao u Statistici): blagi preliv, „dubina“ ispod, spuste se na klik; glavna su narandžasta ───────────── */
 :root { --b-top: #efebe4; --b-bot: #f8f6f2; --b-hover: #e6e0d5; --b-line: #c3bcae; --b-shadow: #cdc6b8; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --b-top: #262b30; --b-bot: #1e2226; --b-hover: #30363c; --b-line: #444b52; --b-shadow: #07090a; } }

@@ -5,6 +5,11 @@
 // Nov unos ide NA VRH liste: datum, `nove` (šta je novo) i `dorade` (dorade i ispravke); oznaka vrste se računa sama.
 (() => {
   const VERZIJE = [
+    { datum: "2026-11-20",
+      nove: [],
+      dorade: [
+        "U prozoru „Šta je novo“ svaka stavka ima oznaku: + je nešto novo, − je sitnija dorada ili ispravka.",
+      ] },
     { datum: "2026-10-28",
       nove: [],
       dorade: [
@@ -89,7 +94,8 @@
     dorada += VERZIJE[i].dorade.length;
     VERZIJE[i].v = `0.${novih}.${dorada}`;
   }
-  const linije = (x) => [...x.nove, ...x.dorade];
+  // Svaka stavka nosi svoju vrstu: + novo, − dorada i ispravka (korisnik 20. 11. 2026).
+  const linije = (x) => [...x.nove.map((t) => ["ver-novo", t]), ...x.dorade.map((t) => ["ver-dorada", t])];
 
   window.APP_VERZIJA = VERZIJE[0].v;
 
@@ -120,7 +126,7 @@
       <div class="ver-list">
       ${VERZIJE.map((x, i) => ({ x, t: tip(x, VERZIJE[i + 1]) })).map(({ x, t }) => `<section class="ver-item">
         <h3>Verzija ${esc(x.v)} <span class="ver-tip ${t[0]}">${t[1]}</span> <span>${fmtDate(x.datum)}</span></h3>
-        <ul>${linije(x).map((i) => `<li>${esc(i)}</li>`).join("")}</ul>
+        <ul>${linije(x).map(([k, t]) => `<li class="${k}" title="${k === "ver-novo" ? "Novo" : "Dorada ili ispravka"}">${esc(t)}</li>`).join("")}</ul>
       </section>`).join("")}
       </div>`;
     dlg.showModal();

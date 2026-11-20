@@ -520,7 +520,7 @@
     // obrne kad je redosled opadajući; kod reda po imenu ostaju slova A-Ž / Ž-A.
     b.innerHTML = state.sort === "name"
       ? `<span class="sort-slova">${state.desc ? "Ž-A" : "A-Ž"}</span>`
-      : `<svg class="sort-chev" viewBox="0 0 11 7" aria-hidden="true"><path d="M1 1.3l4.5 4.4L10 1.3"/></svg>`;
+      : `<svg class="sort-chev" viewBox="0 0 11 7" aria-hidden="true"><path d="M1 5.7l4.5-4.4L10 5.7"/></svg>`;
     b.classList.toggle("dole", !!state.desc && state.sort !== "name");
     b.title = (state.desc ? "Od najvećeg ka najmanjem" : "Od najmanjeg ka najvećem") + " - klikni za obrnuto";
     b.setAttribute("aria-label", b.title);
@@ -708,7 +708,8 @@
   }
   /* ============ kolekcionar: vrednost kolekcije i kompletiranje setova ============ */
   // Glavni setovi redom izlaska. Promo karte (OPP, PR, JDG) nemaju zaokružen spisak, pa se ne prate kao setovi.
-  const MAIN_SETS = ["OGN", "OGS", "SFD", "UNL", "VEN"];
+  // RAD (Radiance, okt. 2026) riftcodex nema - stiže iz dopune sa TCGplayer-a, pa ga ima samo kad su cene učitane.
+  const MAIN_SETS = ["OGN", "OGS", "SFD", "UNL", "VEN", "RAD"];
   const RAR_ORDER = ["Common", "Uncommon", "Rare", "Epic"];
   // Spisak seta: karte sa brojem bez slova koji nije veći od ukupnog („036“ od „298“). Alt art, overnumbered
   // i signature verzije su dodatne i ne ulaze u spisak. Imena se ne ponavljaju između glavnih setova,

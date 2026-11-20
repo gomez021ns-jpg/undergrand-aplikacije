@@ -157,8 +157,11 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1
 .ver-item h3 .ver-tip { font-size: 0.7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); vertical-align: 2px; }
 .ver-tip.t-x { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .ver-tip.t-y { color: var(--accent-text); border-color: var(--accent); }
-.ver-item ul { margin: 0 0 8px; padding-left: 1.2em; }
-.ver-item li { font-size: 0.92rem; }
+.ver-item ul { margin: 0 0 8px; padding-left: 0; list-style: none; }
+.ver-item li { font-size: 0.92rem; position: relative; padding-left: 1.4em; }
+.ver-item li::before { position: absolute; left: 0; top: 0; width: 1em; text-align: center; font-weight: 700; }
+.ver-item li.ver-novo::before { content: "+"; color: var(--accent-text); }
+.ver-item li.ver-dorada::before { content: "−"; color: var(--muted); }
 
 /* ───────────── početna ───────────── */
 .hero { padding: 28px 0 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; }

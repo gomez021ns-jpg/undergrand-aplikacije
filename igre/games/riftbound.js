@@ -2,6 +2,7 @@
 const F = window.FIG;
 
 // ─────────────────────────────── ŠEME ───────────────────────────────
+// (FIG_TABLE, FIG_TURN, FIG_RUNES i FIG_ARRIVE koristi i vodič za početnike: riftbound-pocetnici.js preko window.RB_FIG)
 
 // Raspored stola 1v1
 const tableRow = (y, mirrored, dim) => {
@@ -248,6 +249,8 @@ const FIG_CHAIN = F.figure(
   { caption: "Chain: poslednje dodato se razrešava prvo. Posle svakog razrešavanja može se ponovo odgovarati." }
 );
 
+window.RB_FIG = { FIG_TABLE, FIG_TURN, FIG_RUNES, FIG_ARRIVE };
+
 registerGame({
   id: "riftbound",
   cover: "images/riftbound.jpg",
@@ -259,7 +262,7 @@ registerGame({
   category: "Kartaška igra (TCG)",
   accent: "#c8a24a",
   owned: "Osnovna igra",
-  rulesVersion: "Core Rules v2026-07-16",
+  rulesVersion: "Core Rules sa izmenama do Radiance (16. 10. 2026)",
   summary:
     "Dva igrača, svaki sa svojim Legend-om i šampionom, bore se za kontrolu nad battlefield-ima. Osvajaj i drži battlefield-e da skupljaš poene - prvi do 8 poena pobeđuje.",
 
@@ -662,7 +665,11 @@ registerGame({
         </ol>
         <div class="example"><b>Primer:</b> ti igraš spell „3 štete jedinici“ na protivnikovu jedinicu Might 2. Protivnik odgovara Reaction-om „+3 Might ovog poteza“ na istu jedinicu. Ti passuješ, on passuje. Prvo se razreši njegov Reaction (jedinica sada ima Might 5), pa tvoj spell - 3 štete nisu dovoljne i jedinica preživljava. Da si pre razrešavanja odgovorio još jednim Reaction-om, on bi se razrešio prvi.</div>
         <h4>Mete</h4>
-        <p>Karta cilja samo ako izričito „bira“ (choose) nešto. Mete se biraju pri igranju. Ako sve mete postanu nevažeće, taj deo efekta ne radi, ali se ostatak karte razrešava. Instrukcije koje ne mogu da se izvrše se preskaču.</p>`
+        <p>Karta cilja samo ako izričito „bira“ (choose) nešto. Mete se biraju pri igranju. Ako sve mete postanu nevažeće, taj deo efekta ne radi, ali se ostatak karte razrešava. Instrukcije koje ne mogu da se izvrše se preskaču.</p>
+        <ul>
+          <li><b>„Pick“</b> (od Radiance) je izbor koji <b>nije</b> ciljanje - na njega ne utiču efekti kao <b class="kw">Deflect</b>. „Choose“ i dalje znači ciljanje. Od seta Legacy (januar 2027) mnoge karte sa „choose“ biće preformulisane u „pick“ gde se ne cilja.</li>
+          <li>Karta ili sposobnost koja je tek na putu da se odigra (još „pending“ na chain-u) ne može biti meta.</li>
+        </ul>`
     },
     {
       id: "kretanje",
@@ -684,6 +691,12 @@ registerGame({
           <li>Battlefield koji <b>već kontrolišeš</b> → ništa posebno.</li>
           <li><b>Prazan</b> battlefield koji ne kontrolišeš → postaje <b>Contested</b> → <b>Showdown</b>.</li>
           <li>Battlefield sa <b>protivničkim jedinicama</b> → <b>Combat</b>.</li>
+        </ul>
+        <h4>Kontrola battlefield-a</h4>
+        <ul>
+          <li>Battlefield kontrolišeš dok na njemu imaš svoje jedinice.</li>
+          <li>Kad na njemu više nemaš jedinica (otišle su u bazu ili su poginule van borbe), gubiš kontrolu - osim ako je tamo upravo u toku showdown ili borba. Prazan battlefield ne donosi Hold poen.</li>
+          <li>Ako posle borbe ni jedna strana nema jedinice, battlefield ne kontroliše niko.</li>
         </ul>
         <h4>Recall</h4>
         <p><b class="kw">Recall</b> vraća permanent u bazu, ali <b>nije pomeranje</b> - ne okida efekte kretanja i ne menja stanje jedinice (ready/exhausted, šteta).</p>`
@@ -857,6 +870,8 @@ registerGame({
           <dd>Da: prvo exhaust za 1 Energy, pa recycle za 1 Power njenog domena.</dd>
           <dt>Koliko runa mogu imati na stolu?</dt>
           <dd>Najviše onoliko koliko ih je u Rune Deck-u - 12.</dd>
+          <dt>Vratio sam sve jedinice sa battlefield-a u bazu. Da li je i dalje moj?</dt>
+          <dd>Ne. Kontrolu imaš samo dok na battlefield-u imaš jedinice; prazan gubiš (i nema Hold poena za njega).</dd>
           <dt>Šta ako posle borbe obe strane imaju preživele jedinice?</dt>
           <dd>Napadači se vraćaju (recall) u bazu, branilac zadržava kontrolu, a niko ne boduje.</dd>
           <dt>Mogu li da dodam jedinicu u borbu koja je već počela?</dt>
@@ -915,7 +930,13 @@ registerGame({
     { term: "Hunt X", group: "Unleashed", def: "Kad ova jedinica uradi Conquer ili Hold, dobijaš X XP." },
     { term: "Level N", group: "Unleashed", def: "„Level N → [tekst]“: karta ima taj tekst dok imaš N ili više XP." },
     { term: "Unique", group: "Unleashed", def: "U špilu sme biti samo 1 kopija ove karte." },
-    { term: "XP", group: "Unleashed", def: "Resurs igrača (javan, bez gornje granice) koji se dobija i troši efektima karata." }
+    { term: "XP", group: "Unleashed", def: "Resurs igrača (javan, bez gornje granice) koji se dobija i troši efektima karata." },
+
+    // Radiance (okt. 2026) - prema zvaničnim patch notes od 9. 10. 2026; tačan tekst je na kartama
+    { term: "Deploy", group: "Radiance", def: "Na opremi (gear): možeš je odigrati na <b>bilo koji battlefield</b> - svoj, prazan ili protivnički - umesto u bazu. Ostaje tamo dok ne bude uništena (neki efekti je pomeraju). Ako battlefield na kome je tvoja Deploy oprema drži protivnik, oprema se uništava (kill)." },
+    { term: "Disarm X", group: "Radiance", def: "Na jedinici, okida se pri napadu: prvi put kad napadne u borbi, protivnička jedinica na tom battlefield-u dobija -X Might ovog poteza. Bez broja = 1. Više izvora se sabira u jedan okidač (kao Assault i Shield)." },
+    { term: "Show Off", group: "Radiance", def: "Na jedinicama i spell-ovima: pokaži iz ruke kartu koja ispunjava uslov, ili izaberi svoju kartu/token na tabli sa tim osobinama. Karta zatim koristi podatke pokazanog (npr. njegov Might) - vrednost se zaključava u trenutku pokazivanja. Karta licem nadole ne može da se pokaže." },
+    { term: "Pick", group: "Radiance", def: "Izbor koji <b>nije</b> ciljanje (za razliku od „choose“). Ne okida efekte ciljanja i na njega ne utiče Deflect." }
   ],
 
   expansions: [],
@@ -925,7 +946,10 @@ registerGame({
     { label: "Core Rules referenca po sekcijama (riftwatcher.com)", url: "https://riftwatcher.com/rules/" },
     { label: "FAQ (riftwatcher.com)", url: "https://riftwatcher.com/rules/faq/" },
     { label: "Patch notes: Spiritforged", url: "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-core-rules-spiritforged-patch-notes/" },
-    { label: "Patch notes: Unleashed", url: "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-core-rules-unleashed-patch-notes/" }
+    { label: "Patch notes: Unleashed", url: "https://playriftbound.com/en-us/news/rules-and-releases/riftbound-core-rules-unleashed-patch-notes/" },
+    { label: "Patch notes: Vendetta (na snazi od 24. 7. 2026)", url: "https://playriftbound.com/en-us/news/announcements/core-rules-vendetta-patch-notes/" },
+    { label: "Vendetta FAQ i pojašnjenja", url: "https://playriftbound.com/en-us/news/rules-and-releases/vendetta-rules-faq-and-clarifications/" },
+    { label: "Patch notes: Radiance (na snazi od 16. 10. 2026)", url: "https://playriftbound.com/en-us/news/announcements/core-rules-radiance-patch-notes-effective-october-16-2026/" }
   ]
 });
 })();

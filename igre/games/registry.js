@@ -9,6 +9,8 @@ function registerGame(game) {
   game.rules = game.rules || [];
   game.sources = game.sources || [];
   game.houseRules = game.houseRules || [];
+  game.beginner = game.beginner || []; // vodič za početnike (kartica „Za početnike“), isti oblik kao rules
+
   window.GAMES.push(game);
 }
 
