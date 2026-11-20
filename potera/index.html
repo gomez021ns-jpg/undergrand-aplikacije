@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UnderGRAND Potera do Horgoša</title>
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="css/stil.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="ug-logo-link" href="https://undergrandradio.com" target="_blank" rel="noopener" title="UnderGRAND radio"><img class="ug-logo" src="assets/logo.png" alt="UnderGRAND"></a>
+    <div class="ug-title">
+      <div class="ug-title-row"><h1 class="ug-name">POTERA DO HORGOŠA</h1><button class="ug-ver" type="button" data-verzije title="Šta je novo"></button></div>
+      <p class="ug-slogan">Jedinica 7, krenite!</p>
+    </div>
+    <div class="ug-actions">
+      <button class="btn" id="muz" type="button" title="Muzika (taster M)">Muzika: uklj.</button>
+      <button class="btn" id="efk" type="button" title="Zvučni efekti">Zvuk: uklj.</button>
+      <button class="btn" id="crt" type="button" title="CRT efekat (taster C)">CRT: uklj.</button>
+    </div>
+  </header>
+  <main class="stage"><canvas id="ekran" width="1280" height="896" aria-label="Igra Potera do Horgoša"></canvas></main>
+  <p class="keys">Strelice ili WASD vožnja · Space turbo (3 po deonici) · Shift menjač HI/LO · Esc pauza · M muzika · C CRT efekat · F fps · radi i gamepad · Igra <a href="https://undergrandradio.com" target="_blank" rel="noopener">UnderGRAND radija</a><br>
+    Privatnost: igra ne prikuplja ničije podatke i ništa ne šalje na internet - rekordi, tvoja tri slova i podešavanja ostaju samo u ovom pregledaču.</p>
+</div>
+
+<script src="podaci/deonice.js"></script>
+<script src="podaci/begunci.js"></script>
+<script src="podaci/replike.js"></script>
+<script src="js/osnova.js"></script>
+<script src="js/nebo.js"></script>
+<script src="js/sprajtovi.js"></script>
+<script src="js/put.js"></script>
+<script src="js/zvuk.js"></script>
+<script src="js/igra.js"></script>
+<script src="js/ekrani.js"></script>
+<script>
+  // dugme CRT u zaglavlju prati podešavanje (menja se i tasterom C i u pauzi)
+  (() => {
+    const dugme = (id, kljuc, natpis, obrnuto) => {
+      const b = document.getElementById(id);
+      b.addEventListener('click', () => { PODESAVANJA[kljuc] = !PODESAVANJA[kljuc]; sacuvajPodesavanja(); b.blur(); });
+      setInterval(() => { const uk = obrnuto ? !PODESAVANJA[kljuc] : PODESAVANJA[kljuc]; b.textContent = `${natpis}: ${uk ? 'uklj.' : 'isklj.'}`; }, 250);
+    };
+    dugme('muz', 'muzikaIskl', 'Muzika', true); dugme('efk', 'efektiIskl', 'Zvuk', true); dugme('crt', 'crt', 'CRT', false);
+  })();
+</script>
+<script src="verzije.js"></script>
+<script src="punekran.js"></script>
+</body>
+</html>
