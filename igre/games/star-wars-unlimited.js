@@ -70,6 +70,9 @@ const FIG_SWU_ASPECTS = F.figure(
 
 // ─────────────────────────────── IGRA ───────────────────────────────
 
+// Šeme koje koristi i vodič za početnike (star-wars-unlimited-pocetnici.js)
+window.SWU_FIG = { FIG_SWU_TABLE, FIG_SWU_ROUND, FIG_SWU_ATTACK, FIG_SWU_ASPECTS };
+
 registerGame({
   id: "star-wars-unlimited",
   title: "Star Wars: Unlimited",

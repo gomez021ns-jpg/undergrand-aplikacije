@@ -178,7 +178,7 @@
             p.rows.map((x) => ({ cls: +x.pos <= 3 ? "podium" : "", cells: [esc(x.pos), provDriver(x), esc(x.team), esc(x.laps), esc(x.gap)] })))
         : `<p class="empty">Trka je završena, ali zvanični rezultati još nisu objavljeni.</p>`;
     } else raceBody = `<p class="empty">${started ? `Trka je u toku - prati je na kartici <a href="#/f1/uzivo">Uživo</a>.` : "Rezultati će biti dostupni posle trke."}</p>`;
-    html += `<section class="card"><h3>Trka</h3>${raceBody}</section>`;
+    html += `<section class="card"><h3>Trka${raceStart(r) < now - RACE_DONE_AFTER ? ` <a class="rp-link" href="#/f1/reprodukcija/${esc(r.date)}">▶ Reprodukcija na stazi</a>` : ""}</h3>${raceBody}</section>`;
     html += `</div>`;
     if (sRes.length) html += `<section class="card"><h3>Sprint</h3>${resultsTable(sRes, true)}</section>`;
     if (qRes.length) {
@@ -281,18 +281,20 @@
   }
 
   function renderLive(el) {
-    el.innerHTML = `<div class="live-view"></div>`;
-    SC.f1live.mount(el.firstChild);
+    el.innerHTML = `<div class="live-grid"><div class="live-view"></div><div class="live-map card"></div></div>`;
+    SC.f1live.mount(el.querySelector(".live-view"));
+    SC.f1map.mountLive(el.querySelector(".live-map"));
     return {};   // pogled se sam osvežava preko WebSocket-a
   }
 
   SC.registerLeague({
     id: "f1", name: "Formula 1", short: "F1", accent: "#e10600", icon: F1_ICON, visual: "f1", events,
-    source: { label: "Jolpica F1 API i F1 live timing", url: "https://github.com/jolpica/jolpica-f1" },
+    source: { label: "Jolpica F1 API, F1 live timing, OpenF1 i MultiViewer (staze)", url: "https://github.com/jolpica/jolpica-f1" },
     tabs: [
       { id: "kalendar", label: "Kalendar i rezultati", render: renderCalendar },
       { id: "sampionat", label: "Šampionat", render: renderChampionship },
       { id: "uzivo", label: "Uživo", render: renderLive },
+      { id: "reprodukcija", label: "Reprodukcija", render: (el, arg) => SC.f1map.renderReplay(el, arg) },
     ],
     overview,
   });

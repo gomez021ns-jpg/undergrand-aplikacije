@@ -64,7 +64,7 @@ const FIG_SW_FORCE = F.figure(
 // Tok poteza
 const FIG_SW_TURN = F.figure(
   480, 262,
-  F.box(10, 10, 460, 62, "Početak poteza", { sub: "nova baza (ako treba) → +1 resurs ako je Sila skroz kod tebe → resursi od capital ship-ova" }) +
+  F.box(10, 10, 460, 62, "Početak poteza", { sub: ["nova baza (ako treba) → +1 resurs ako je Sila skroz kod tebe", "→ resursi od capital ship-ova"] }) +
     F.arrow(240, 72, 240, 94) +
     F.box(10, 96, 460, 78, "Tvoj potez - bilo kojim redom, koliko god možeš", {
       cls: "f-acc",
@@ -156,6 +156,9 @@ const FIG_SW_2V2 = F.figure(
 );
 
 // ─────────────────────────────── IGRA ───────────────────────────────
+
+// Šeme koje koristi i vodič za početnike (star-wars-deckbuilding-pocetnici.js)
+window.SWD_FIG = { FIG_SW_TABLE, FIG_SW_TURN, FIG_SW_FORCE, FIG_SW_ATTACK, FIG_SW_BOUNTY };
 
 registerGame({
   id: "star-wars-deckbuilding",

@@ -495,6 +495,169 @@
     return null;
   }
 
+  // ------------------------------------------------------------ Fudbal: teren (mapa šuteva i događaja, postave po formaciji)
+  // ESPN commentary[].play: fieldPositionX/Y (gde je akcija), fieldPosition2X/Y (kuda je otišao šut; kod blokiranog
+  // mesto bloka), u koordinatama ekipe iz play.team: 0-100, ekipa uvek napada ka x=100, y=0 je desna aut-linija
+  // gledano u smeru napada (proveravano 22. 11. 2026). Na terenu domaćin napada nadesno, gost nalevo (preslikan).
+  const pitchState = new Map();   // id utakmice → izabrani prikaz i filteri (da prežive osvežavanje)
+  const SHOT_KIND = [
+    [/^goal|penalty - scored/i, "goal", "Gol"], [/on target|saved/i, "on", "Šut u okvir"], [/woodwork|post|bar/i, "wood", "Stativa / prečka"],
+    [/blocked/i, "blk", "Blokiran šut"], [/off target|missed|wide|over/i, "off", "Šut pored gola"],
+  ];
+  const OTHER_KIND = { Foul: ["foul", "Prekršaj"], "Corner Awarded": ["corner", "Korner"], Offside: ["offside", "Ofsajd"] };
+  const hex = (c) => (/^[0-9a-f]{6}$/i.test(c || "") ? `#${c}` : "");
+  const colorGap = (a, b) => { const n = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)); const [x, y] = [n(a), n(b)]; return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]); };
+  function teamColors(home, away) {
+    const h = hex(home.team.color) || "#F0A23B";
+    let a = hex(away.team.color) || "#4aa3ff";
+    if (colorGap(h, a) < 120) a = hex(away.team.alternateColor) && colorGap(h, hex(away.team.alternateColor)) >= 120 ? hex(away.team.alternateColor) : (colorGap(h, "#ffffff") < 120 ? "#1d6fd1" : "#f4f4f4");
+    return [h, a];
+  }
+  // Teren 105 × 68 m. Tačka ekipe (x, y u 0-100) → koordinate SVG-a.
+  const P = (side, x, y) => (side === "L" ? [x * 1.05, (100 - y) * 0.68] : [(100 - x) * 1.05, y * 0.68]);
+  const PITCH_LINES = `<rect x="0" y="0" width="105" height="68"/><line x1="52.5" y1="0" x2="52.5" y2="68"/><circle cx="52.5" cy="34" r="9.15"/>
+    <circle cx="52.5" cy="34" r=".35" class="pt-dot"/>
+    ${[0, 1].map((m) => { const X = (v) => (m ? 105 - v : v); return `<rect x="${Math.min(X(0), X(16.5))}" y="13.84" width="16.5" height="40.32"/>
+      <rect x="${Math.min(X(0), X(5.5))}" y="24.84" width="5.5" height="18.32"/><circle cx="${X(11)}" cy="34" r=".35" class="pt-dot"/>
+      <path d="M${X(16.5)} 26.69 A9.15 9.15 0 0 ${m ? 0 : 1} ${X(16.5)} 41.31"/><rect x="${m ? 105 : -2}" y="30.34" width="2" height="7.32" class="pt-goal"/>`; }).join("")}
+    <path d="M0 1 A1 1 0 0 0 1 0 M104 0 A1 1 0 0 0 105 1 M105 67 A1 1 0 0 0 104 68 M1 68 A1 1 0 0 0 0 67"/>`;
+
+  function pitchShots(s, home, away, sideById, colors) {
+    // play.team ima samo ime (bez id-a).
+    const sideOf = (t) => sideById(t) || (t?.displayName === home.team.displayName ? "L" : t?.displayName === away.team.displayName ? "R" : "");
+    const plays = (s.commentary || []).map((c) => c.play).filter((p) => p && p.fieldPositionX != null && sideOf(p.team));
+    const seen = new Set();
+    const marks = [];
+    const count = { L: 0, R: 0, goalL: 0, goalR: 0 };
+    for (const p of plays) {
+      const t = p.type?.text || "";
+      const side = sideOf(p.team);
+      const col = side === "L" ? colors[0] : colors[1];
+      const half = p.period?.number === 1 ? "h1" : p.period?.number === 2 ? "h2" : "hx";
+      const who = (p.participants || []).map((x) => x.athlete?.displayName).filter(Boolean);
+      const [x, y] = P(side, +p.fieldPositionX, +p.fieldPositionY);
+      const min = p.clock?.displayValue || "";
+      const shot = /shot|goal|penalty/i.test(t) && !/kickoff/i.test(t) ? SHOT_KIND.find(([re]) => re.test(t)) : null;
+      if (shot) {
+        const [, k, label] = shot;
+        count[side]++; if (k === "goal") count[`goal${side}`]++;
+        const tip = `${min} ${who[0] || ""} (${p.team.displayName}) - ${label}${who[1] ? `, asist. ${who[1]}` : ""}`;
+        let line = "";
+        if (p.fieldPosition2X != null) {
+          const [x2, y2] = P(side, +p.fieldPosition2X, +p.fieldPosition2Y);
+          line = `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" class="pm-ln" stroke="${col}"/>`;
+        }
+        const r = k === "goal" ? 1.5 : 1.05;
+        marks.push(`<g class="pm pm-shot pm-${k} pm-${half}">${line}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" stroke="${col}" fill="${k === "goal" || k === "on" ? col : "transparent"}"/>${k === "goal" ? `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r + 0.7}" class="pm-ring" stroke="${col}"/>` : ""}<title>${esc(tip)}</title></g>`);
+        continue;
+      }
+      const other = OTHER_KIND[t];
+      if (!other) continue;
+      const key = `${t}|${min}|${p.fieldPositionX}|${p.fieldPositionY}`;   // prekršaj dolazi dva puta („faul“ i „dobija slobodan udarac“)
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const [k, label] = other;
+      const tip = `${min} ${label} - ${p.team.displayName}${k === "foul" && who[0] ? ` (${who[0]})` : ""}`;
+      const shape = k === "foul" ? `<path d="M${(x - 0.8).toFixed(1)} ${(y - 0.8).toFixed(1)} l1.6 1.6 m0 -1.6 l-1.6 1.6" stroke="${col}"/>`
+        : k === "corner" ? `<rect x="${(x - 0.7).toFixed(1)}" y="${(y - 0.7).toFixed(1)}" width="1.4" height="1.4" fill="${col}" transform="rotate(45 ${x.toFixed(1)} ${y.toFixed(1)})"/>`
+        : `<path d="M${x.toFixed(1)} ${(y - 0.9).toFixed(1)} l0.9 1.6 h-1.8 z" fill="${col}"/>`;
+      marks.push(`<g class="pm pm-${k} pm-${half}">${shape}<title>${esc(tip)}</title></g>`);
+    }
+    return { svg: marks.join(""), count, any: marks.length > 0 };
+  }
+
+  // Postava na terenu: linije po formaciji („4-2-3-1“), igrači u liniju po dubini pozicije, levo-desno po oznaci L/R.
+  const DEPTH = (a) => (a === "G" ? 0 : /^(CD|CB|SW|LB|RB)/.test(a) ? 1 : /WB/.test(a) ? 1.5 : /^(DM|CDM)/.test(a) ? 2 : /^(CM|LM|RM|M)/.test(a) ? 2.5
+    : /^AM/.test(a) ? 3 : /^(LW|RW|LF|RF)/.test(a) ? 3.5 : /^(F|CF|ST|S)/.test(a) ? 4 : 2.5);
+  // Bočni položaj: bekovi i krila (LB, RWB, LW, LM…) skroz sa strane, „-L“/„-R“ (levi/desni štoper, AM-L…) bliže sredini.
+  const LAT = (a) => (/^L/.test(a) ? -2 : /^R/.test(a) ? 2 : /-L$/.test(a) ? -1 : /-R$/.test(a) ? 1 : 0);
+  function pitchLineup(r, side, col) {
+    const st = r.roster.filter((p) => p.starter);
+    if (st.length < 11) return "";
+    const ab = (p) => p.position?.abbreviation || "";
+    const gk = st.find((p) => ab(p) === "G") || st.find((p) => +p.formationPlace === 1) || st[0];
+    const out = st.filter((p) => p !== gk).sort((a, b) => DEPTH(ab(a)) - DEPTH(ab(b)) || (+a.formationPlace || 0) - (+b.formationPlace || 0));
+    let counts = String(r.formation || "").split("-").map(Number).filter((n) => n > 0);
+    if (counts.reduce((a, b) => a + b, 0) !== out.length) {   // bez formacije: linije po dubini
+      counts = [];
+      let prev = null;
+      for (const p of out) { const d = DEPTH(ab(p)); if (d !== prev) counts.push(0); counts[counts.length - 1]++; prev = d; }
+    }
+    const lines = [[gk]];
+    let i = 0;
+    for (const n of counts) { lines.push(out.slice(i, i + n)); i += n; }
+    const L = lines.length - 1;
+    const res = [];
+    lines.forEach((line, li) => {
+      const depth = li === 0 ? 5 : 15 + (L > 1 ? ((li - 1) / (L - 1)) * 31 : 15);   // od gola do blizu centra (0-100 = ceo teren)
+      const sorted = [...line].sort((a, b) => LAT(ab(a)) - LAT(ab(b)) || (+a.formationPlace || 0) - (+b.formationPlace || 0));
+      sorted.forEach((p, k) => {
+        const lat = ((k + 0.5) / sorted.length) * 100;   // levo krilo → desno krilo
+        const [x, y] = P(side, depth, 100 - lat);
+        const stt = Object.fromEntries((p.stats || []).map((v) => [v.name, +v.value || 0]));
+        const nm = p.athlete?.lastName || String(p.athlete?.displayName || "").split(" ").slice(-1)[0] || "";
+        const badges = [stt.totalGoals ? `<circle cx="${(x + 1.9).toFixed(1)}" cy="${(y - 1.9).toFixed(1)}" r=".8" class="lu-goal"/>` : "",
+          stt.redCards ? `<rect x="${(x - 2.6).toFixed(1)}" y="${(y - 2.8).toFixed(1)}" width="1" height="1.4" class="lu-red"/>` : stt.yellowCards ? `<rect x="${(x - 2.6).toFixed(1)}" y="${(y - 2.8).toFixed(1)}" width="1" height="1.4" class="lu-yel"/>` : "",
+          p.subbedOut ? `<text x="${(x + 2.2).toFixed(1)}" y="${(y + 1.2).toFixed(1)}" class="lu-sub">↓</text>` : ""].join("");
+        const tip = `${p.jersey || ""} ${p.athlete?.displayName || ""} (${ab(p)})${stt.totalGoals ? ` · golova: ${stt.totalGoals}` : ""}${stt.yellowCards ? " · žuti" : ""}${stt.redCards ? " · crveni" : ""}${p.subbedOut ? " · izašao" : ""}`;
+        res.push(`<g class="lu-p"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8" fill="${col}"/><text x="${x.toFixed(1)}" y="${(y + 0.6).toFixed(1)}" class="lu-no" fill="${colorGap(col, "#ffffff") < 200 ? "#111" : "#fff"}">${esc(p.jersey || "")}</text>
+          <text x="${x.toFixed(1)}" y="${(y + 3.7).toFixed(1)}" class="lu-nm">${esc(nm)}</text>${badges}<title>${esc(tip)}</title></g>`);
+      });
+    });
+    return res.join("");
+  }
+
+  function pitchSection(s, id, home, away, sideOf) {
+    const colors = teamColors(home, away);
+    const shots = pitchShots(s, home, away, sideOf, colors);
+    const rosters = (s.rosters || []).filter((r) => r.roster?.some((p) => p.starter));
+    const lu = rosters.map((r) => pitchLineup(r, r.homeAway === "home" ? "L" : "R", r.homeAway === "home" ? colors[0] : colors[1])).join("");
+    if (!shots.any && !lu) return "";
+    const st = pitchState.get(id) || { view: shots.any ? "shots" : "lu", f: ["shot"], half: "all" };
+    pitchState.set(id, st);
+    const form = (side) => rosters.find((r) => r.homeAway === side)?.formation || "";
+    const chip = (k, label) => `<button type="button" class="pt-chip${st.f.includes(k) ? " on" : ""}" data-f="${k}">${label}</button>`;
+    return `<section class="gd-sec pt v-${st.view} h-${st.half} ${st.f.map((k) => `f-${k}`).join(" ")}" data-pt="${esc(id)}">
+      <div class="pt-head"><h3>Teren</h3>
+        <nav class="tabs pt-views">${shots.any ? `<a href="#" data-v="shots" class="${st.view === "shots" ? "active" : ""}">Šutevi i događaji</a>` : ""}${lu ? `<a href="#" data-v="lu" class="${st.view === "lu" ? "active" : ""}">Postave</a>` : ""}</nav>
+        <span class="pt-filters">${chip("shot", "Šutevi")}${chip("foul", "Prekršaji")}${chip("corner", "Korneri")}${chip("offside", "Ofsajdi")}
+          <select class="pager-sel pt-half"><option value="all"${st.half === "all" ? " selected" : ""}>Cela utakmica</option><option value="1"${st.half === "1" ? " selected" : ""}>1. poluvreme</option><option value="2"${st.half === "2" ? " selected" : ""}>2. poluvreme</option></select></span>
+      </div>
+      <div class="pt-teams"><span><i style="background:${colors[0]}"></i>${esc(home.team.displayName)} <small class="muted pt-sv">napada → · šuteva ${shots.count.L}</small><small class="muted pt-lv">${esc(form("home"))}</small></span>
+        <span><small class="muted pt-sv">← napada · šuteva ${shots.count.R}</small><small class="muted pt-lv">${esc(form("away"))}</small> ${esc(away.team.displayName)}<i style="background:${colors[1]}"></i></span></div>
+      <svg class="pt-svg" viewBox="-3 -1.5 111 71" role="img" aria-label="Teren"><g class="pt-lines">${PITCH_LINES}</g>
+        <g class="pt-shots">${shots.svg}</g><g class="pt-lu">${lu}</g></svg>
+      <p class="hint pt-legend"><span class="lg lg-goal"></span>gol <span class="lg lg-on"></span>u okvir <span class="lg lg-off"></span>pored / stativa <span class="lg lg-blk"></span>blokiran
+        · linija pokazuje kuda je lopta otišla · <b>×</b> prekršaj (ko je napravio) · <b>◆</b> korner · <b>▲</b> ofsajd. Pređi mišem preko oznake za detalje.</p>
+    </section>`;
+  }
+  // Klikovi na terenu: jedan slušalac na celom dokumentu (detalji se crtaju u privremeni element pa premeštaju),
+  // stanje u pitchState jer se sadržaj uživo menja na 30 s.
+  {
+    const apply = (sec, st) => {
+      sec.className = `gd-sec pt v-${st.view} h-${st.half} ${st.f.map((k) => `f-${k}`).join(" ")}`;
+      sec.querySelectorAll(".pt-views a").forEach((a) => a.classList.toggle("active", a.dataset.v === st.view));
+      sec.querySelectorAll(".pt-chip").forEach((b) => b.classList.toggle("on", st.f.includes(b.dataset.f)));
+    };
+    document.addEventListener("click", (e) => {
+      const sec = e.target.closest(".pt");
+      if (!sec) return;
+      const st = pitchState.get(sec.dataset.pt);
+      const v = e.target.closest(".pt-views a"), c = e.target.closest(".pt-chip");
+      if (v) { e.preventDefault(); st.view = v.dataset.v; }
+      else if (c) { const k = c.dataset.f; st.f = st.f.includes(k) ? st.f.filter((x) => x !== k) : [...st.f, k]; }
+      else return;
+      apply(sec, st);
+    });
+    document.addEventListener("change", (e) => {
+      const sel = e.target.closest?.(".pt-half");
+      if (!sel) return;
+      const sec = sel.closest(".pt"), st = pitchState.get(sec.dataset.pt);
+      st.half = sel.value;
+      apply(sec, st);
+    });
+  }
+
   async function soccerDetail(el, id, base) {
     const s = await getJSON(`${base}/summary?event=${id}`, 20000);
     let { html, state, started, home, away } = espnTop(s, { homeFirst: true, record: false, period: soccerPeriod });
@@ -528,6 +691,8 @@
       }).join("");
       html += `<section class="gd-sec"><h3>Tok utakmice</h3><ul class="gd-tl">${rows}</ul></section>`;
     }
+
+    html += pitchSection(s, String(id), home, away, sideOf);   // pre početka samo postave, ako su objavljene
 
     if (started) {
       html += espnTeamStats(s, home, away, SOCCER_TEAM_STATS);

@@ -115,7 +115,6 @@ registerGame({
   players: "2 (postoje i multiplayer formati)",
   category: "Kartaška igra (TCG)",
   accent: "#c94a3a",
-  cover: "images/flesh-and-blood.jpg",
   wishlist: true,              // korisnik je još nema
   owned: "Osnovna igra",
   rulesVersion: "Comprehensive Rules 2.15.0 (29. 9. 2026)",

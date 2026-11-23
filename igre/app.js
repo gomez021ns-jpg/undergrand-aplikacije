@@ -104,6 +104,15 @@
           ${games.map(gameCard).join("")}
         </section>
         ${
+          LOCAL && pending().length
+            ? `<section class="lib-section" data-section>
+                <h2 class="lib-title">Čeka na pravila <span class="count">${pending().length}</span></h2>
+                <p class="muted small">Igre i dodaci koje si upisao. Reci Claude-u „dodaj nove igre“ - on vidi ovaj spisak, pronalazi pravila i dodaje ih.</p>
+                <div class="grid lib-grid">${pending().map(pendingCard).join("")}</div>
+              </section>`
+            : ""
+        }
+        ${
           wishlist.length
             ? `<section class="lib-section" data-section>
                 <h2 class="lib-title"><span class="heart" aria-hidden="true">♥</span> Lista želja <span class="count">${wishlist.length}</span></h2>
@@ -114,8 +123,11 @@
         }
         <p id="lib-empty" class="empty" hidden>Nema igara koje odgovaraju pretrazi.</p>
         <section class="add-hint">
-          <h2>Nova igra ili dodatak?</h2>
-          <p>Reci Claude-u naziv igre ili dodatka, a on će pronaći pravila, prevesti ih i dodati ovde.</p>
+          <div>
+            <h2>Nova igra ili dodatak?</h2>
+            <p>${LOCAL ? "Upiši je ovde - odmah se pojavljuje u kolekciji, a Claude posle pronalazi pravila, prevodi ih i dodaje." : "Reci Claude-u naziv igre ili dodatka, a on će pronaći pravila, prevesti ih i dodati ovde."}</p>
+          </div>
+          ${LOCAL ? `<button class="btn btn-primary" type="button" id="new-game-btn">+ Kupio sam novu igru</button>` : ""}
         </section>
       </main>`;
 
@@ -134,11 +146,199 @@
       });
       document.getElementById("lib-empty").hidden = shown > 0;
     });
+    document.getElementById("new-game-btn")?.addEventListener("click", openNewGame);
+    app.querySelectorAll("[data-remove-new]").forEach((b) => b.addEventListener("click", () => removeNewGame(b.dataset.removeNew)));
     // Brza štampa podsetnika sa kartice (bez otvaranja igre).
     app.querySelectorAll("[data-print-quick]").forEach((b) =>
       b.addEventListener("click", () => printGame(findGame(b.dataset.printQuick), "quick"))
     );
     bindTopbar();
+  }
+
+  // ───────────── „Kupio sam novu igru“ ─────────────
+  // Korisnik upiše igru (ili dodatak) koju je kupio: odmah se vidi u odeljku „Čeka na pravila“, a Claude u
+  // sledećoj sesiji čita nove-igre.js i dodaje pravila. Samo lokalno (file:// ili localhost), ne na javnom sajtu.
+  // Upis ide preko File System Access API-ja (Edge/Chrome) u folder aplikacije: nove-igre.js i images/nove-igre/.
+  // Folder pamtimo u IndexedDB-u, ali pregledač za file:// stranice dozvolu traži pri svakom čuvanju.
+  const LOCAL = location.protocol === "file:" || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const pending = () => (Array.isArray(window.NOVE_IGRE) ? window.NOVE_IGRE : []);
+  const LIST_HEAD =
+    "// Igre i dodaci upisani dugmetom „Kupio sam novu igru“ - čekaju da Claude doda pravila.\n" +
+    "// Fajl piše aplikacija (app.js, odeljak „Kupio sam novu igru“); kad Claude doda pravila, briše unos odavde.\n";
+
+  function pendingCard(n) {
+    const za = n.za && findGame(n.za);
+    return `
+      <article class="game-card pending" style="--game-accent:${esc(za ? za.accent : "var(--accent)")}" data-search="${esc([n.naziv, za && za.title, n.napomena].filter(Boolean).join(" "))}">
+        <div class="gc-cover" aria-hidden="true">
+          <span class="gc-mono">${esc(monogram(n.naziv))}</span>
+          ${n.slika ? `<img class="gc-photo" src="${esc(n.slika)}" alt="" onerror="this.remove()">` : ""}
+        </div>
+        <div class="gc-body">
+          <div class="eyebrow">${za ? `Dodatak za ${esc(za.title)}` : "Nova igra"}</div>
+          <h3>${esc(n.naziv)}</h3>
+          ${n.napomena ? `<p class="muted small">${esc(n.napomena)}</p>` : ""}
+          <div class="chips"><span class="chip chip-wish">Pravila stižu</span><span class="chip">upisano ${esc(fmtDateSr(n.datum))}</span></div>
+        </div>
+        <div class="gc-actions"><button class="gc-btn" type="button" data-remove-new="${esc(n.id)}" title="Ukloni sa spiska (npr. ako je upisano greškom)">Ukloni</button></div>
+      </article>`;
+  }
+
+  // mala IndexedDB ostava za ručku foldera (ručka ne može u localStorage)
+  function kv(mode, fn) {
+    return new Promise((resolve) => {
+      let req;
+      try { req = indexedDB.open("ug-igre", 1); } catch (e) { return resolve(null); }
+      req.onupgradeneeded = () => req.result.createObjectStore("kv");
+      req.onerror = () => resolve(null);
+      req.onsuccess = () => {
+        try {
+          const tx = req.result.transaction("kv", mode), r = fn(tx.objectStore("kv"));
+          tx.oncomplete = () => resolve(r && "result" in r ? r.result : null);
+          tx.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null); // npr. ručka foldera ne može da se sačuva - onda se folder bira ponovo sledeći put
+        }
+      };
+    });
+  }
+  const kvGet = (k) => kv("readonly", (s) => s.get(k));
+  const kvSet = (k, v) => kv("readwrite", (s) => s.put(v, k));
+
+  async function isIgreFolder(dir) {
+    try {
+      await dir.getFileHandle("index.html");
+      await dir.getFileHandle("nove-igre.js");
+      await dir.getDirectoryHandle("games");
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  // Folder aplikacije: zapamćeni (uz dozvolu) ili ga korisnik bira. Poziva se odmah iz klika (treba „user gesture“).
+  async function igreFolder() {
+    if (!window.showDirectoryPicker)
+      throw new Error("Ovaj pregledač ne može da upisuje u folder. Otvori aplikaciju prečicom (Edge) ili samo reci Claude-u koju si igru kupio.");
+    const saved = await kvGet("folder");
+    if (saved) {
+      try {
+        if ((await saved.requestPermission({ mode: "readwrite" })) === "granted" && (await isIgreFolder(saved))) return saved;
+      } catch (e) { /* bira se ponovo */ }
+    }
+    const dir = await window.showDirectoryPicker({ id: "ug-igre", mode: "readwrite" });
+    if (!(await isIgreFolder(dir)))
+      throw new Error("To nije folder aplikacije. Izaberi folder „igre“ (u njemu su index.html, nove-igre.js i folder games).");
+    await kvSet("folder", dir);
+    return dir;
+  }
+  // Spisak se uvek čita sa diska pre upisa - Claude ga je možda u međuvremenu skratio.
+  async function readList(dir) {
+    const text = await (await (await dir.getFileHandle("nove-igre.js")).getFile()).text();
+    const m = text.match(/window\.NOVE_IGRE\s*=\s*(\[[\s\S]*\])\s*;?\s*$/);
+    if (!m) throw new Error("Fajl nove-igre.js nije u očekivanom obliku - javi Claude-u.");
+    return JSON.parse(m[1]);
+  }
+  async function writeFile(dir, name, data) {
+    const w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+    await w.write(data);
+    await w.close();
+  }
+  const writeList = (dir, list) =>
+    writeFile(dir, "nove-igre.js", LIST_HEAD + "window.NOVE_IGRE = " + JSON.stringify(list, null, 2) + ";\n");
+
+  // Slika kutije: najviše 1400 px, JPEG (kao ostale slike u images/)
+  async function shrinkImage(file) {
+    const bmp = await createImageBitmap(file);
+    const s = Math.min(1, 1400 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * s);
+    c.height = Math.round(bmp.height * s);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("Slika ne može da se obradi."))), "image/jpeg", 0.85));
+  }
+
+  const slugify = (s) => fold(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "igra";
+  const errText = (e) => (e && e.name === "AbortError" ? "Čuvanje je otkazano." : (e && e.message) || "Čuvanje nije uspelo.");
+
+  function openNewGame() {
+    document.getElementById("new-dlg")?.remove();
+    const dlg = document.createElement("dialog");
+    dlg.id = "new-dlg";
+    dlg.className = "ver-dlg new-dlg";
+    const owned = window.GAMES.filter((g) => !g.wishlist).sort((a, b) => a.title.localeCompare(b.title, "sr"));
+    dlg.innerHTML = `
+      <form class="new-form">
+        <div class="ver-h"><h2>Kupio sam novu igru</h2><button type="button" class="ver-x" data-close aria-label="Zatvori">×</button></div>
+        <label><span>Naziv igre ili dodatka</span><input name="naziv" required maxlength="120" placeholder="npr. Catan" autocomplete="off"></label>
+        <label><span>Šta je</span><select name="za">
+          <option value="">Nova igra</option>
+          ${owned.map((g) => `<option value="${esc(g.id)}">Dodatak za ${esc(g.title)}</option>`).join("")}
+        </select></label>
+        <label><span>Napomena (nije obavezno)</span><input name="napomena" maxlength="200" placeholder="npr. srpsko izdanje, kupljeno u Novom Sadu" autocomplete="off"></label>
+        <label><span>Slika kutije (nije obavezno)</span><input name="slika" type="file" accept="image/*"></label>
+        <p class="muted small">Pri čuvanju pregledač traži dozvolu da upiše u folder aplikacije. Prvi put izaberi folder <b>igre</b> (…\\.claudapp\\aplikacije\\igre), posle samo klikneš „Dozvoli“.</p>
+        <p class="new-msg" role="status" aria-live="polite"></p>
+        <div class="new-actions"><button type="button" class="btn" data-close>Otkaži</button><button type="submit" class="btn btn-primary">Sačuvaj</button></div>
+      </form>`;
+    document.body.append(dlg);
+    dlg.addEventListener("click", (e) => { if (e.target === dlg || e.target.closest("[data-close]")) dlg.close(); });
+    dlg.addEventListener("close", () => dlg.remove());
+    const form = dlg.querySelector("form"), msg = dlg.querySelector(".new-msg"), submit = form.querySelector("[type=submit]");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const naziv = form.naziv.value.trim();
+      if (!naziv) return form.naziv.focus();
+      submit.disabled = true;
+      msg.className = "new-msg";
+      msg.textContent = "Čuvam…";
+      try {
+        const dir = await igreFolder();
+        const list = await readList(dir);
+        const id = `${slugify(naziv)}-${Date.now().toString(36)}`;
+        let slika = null;
+        const file = form.slika.files[0];
+        if (file) {
+          const img = await shrinkImage(file);
+          const folder = await (await dir.getDirectoryHandle("images", { create: true })).getDirectoryHandle("nove-igre", { create: true });
+          await writeFile(folder, `${id}.jpg`, img);
+          slika = `images/nove-igre/${id}.jpg`;
+        }
+        const d = new Date();
+        const datum = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        list.push({ id, naziv, za: form.za.value || null, napomena: form.napomena.value.trim() || null, slika, datum });
+        await writeList(dir, list);
+        window.NOVE_IGRE = list;
+        dlg.close();
+        dlg.remove();
+        renderHome();
+      } catch (err) {
+        msg.className = "new-msg err";
+        msg.textContent = errText(err);
+        submit.disabled = false;
+      }
+    });
+    dlg.showModal();
+    form.naziv.focus();
+  }
+
+  async function removeNewGame(id) {
+    const n = pending().find((x) => x.id === id);
+    if (!n || !confirm(`Ukloniti „${n.naziv}“ sa spiska igara koje čekaju pravila?`)) return;
+    try {
+      const dir = await igreFolder();
+      const list = (await readList(dir)).filter((x) => x.id !== id);
+      await writeList(dir, list);
+      if (n.slika) {
+        try {
+          const folder = await (await dir.getDirectoryHandle("images")).getDirectoryHandle("nove-igre");
+          await folder.removeEntry(n.slika.split("/").pop());
+        } catch (e) { /* slike već nema */ }
+      }
+      window.NOVE_IGRE = list;
+      renderHome();
+    } catch (err) {
+      alert(errText(err));
+    }
   }
 
   // ───────────── kartica igre ─────────────

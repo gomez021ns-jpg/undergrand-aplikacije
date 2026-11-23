@@ -19,7 +19,7 @@ const FIG_SWR_MISSION = F.figure(
 
 // Kampanja
 const game = (x, n, last) =>
-  F.box(x, 18, 80, 60, `Igra ${n}`, { cls: last ? "f-acc" : "f-box", sub: last ? "5 baza za pobedu" : null, titleCls: "f-title f-small" });
+  F.box(x, 18, 80, 60, `Igra ${n}`, { cls: last ? "f-acc" : "f-box", sub: last ? ["5 baza", "za pobedu"] : null, titleCls: "f-title f-small" });
 const shop = (x) =>
   F.text(x, 104, ["poeni:", "baze + misije"], { cls: "f-muted", lh: 14 }) + F.text(x, 140, ["kupi upgraded", "startere"], { cls: "f-muted", lh: 14 });
 const FIG_SWR_CAMPAIGN = F.figure(

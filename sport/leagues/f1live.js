@@ -48,10 +48,12 @@
           conn = "open";
           retry = 0;
           waiters.splice(0).forEach((w) => w(state));
-          // Ako nijedna sesija ne traje, stanje je konačno - veza nije potrebna.
-          if (!isRunning()) { finished = true; ws.close(); }
+          // Ako nijedna sesija ne traje, stanje je konačno - veza nije potrebna. Sesija koja tek treba da počne
+          // („Inactive“, npr. pola sata pre trke) drži vezu otvorenu da poredak i mapa krenu čim počne.
+          if (!isRunning() && sessionStatus() !== "Inactive") { finished = true; ws.close(); }
         } else if (m.type === 1 && Array.isArray(m.arguments) && state) {
           const [topic, data] = m.arguments;
+          if (topic === "TimingData") noteSegments(data);
           if (typeof topic === "string") state[topic] = merge(state[topic], data);
         } else if (m.type === 7) {
           conn = "error";
@@ -67,6 +69,80 @@
       if (finished || !views.size) { conn = state ? "closed" : "idle"; return; }
       conn = "reconnecting";
       setTimeout(() => views.size && connect(), Math.min(30000, 2000 * 2 ** retry++));
+    };
+  }
+
+  // ------------------------------------------------------------ položaj na stazi (za mapu)
+  // Pravi GPS položaji (Position.z) traže F1 TV, ali TimingData javlja svaki pređeni mini-sektor
+  // (Sectors[s].Segments[i].Status ≠ 0). Pamtimo poslednji pređeni mini-sektor i trenutak prolaska;
+  // mapa iz toga računa udeo pređenog kruga i do sledećeg mini-sektora klizi procenjenom brzinom.
+  const prog = {};   // broj vozača → { k: globalni indeks mini-sektora, at: vreme prolaska }
+  const items = (o) => (Array.isArray(o) ? o.map((v, i) => [String(i), v]) : Object.entries(o || {}));
+  function segCounts() {
+    for (const l of Object.values(state?.TimingData?.Lines || {})) {
+      const c = items(l.Sectors).map(([, s]) => items(s?.Segments).length);
+      if (c.length && c.every((n) => n > 0)) return c;
+    }
+    return null;
+  }
+  function noteSegments(data) {
+    const counts = segCounts();
+    if (!counts) return;
+    const off = counts.map((_, s) => counts.slice(0, s).reduce((a, b) => a + b, 0));
+    for (const [num, l] of Object.entries(data?.Lines || {})) {
+      let best = -1;
+      for (const [s, sec] of items(l?.Sectors)) {
+        for (const [i, seg] of items(sec?.Segments)) if (seg?.Status) best = Math.max(best, off[+s] + +i);
+      }
+      if (best >= 0) prog[num] = { k: best, at: Date.now() };
+    }
+  }
+  const secs = (v) => {
+    const m = String(v || "").match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
+    return m ? (+m[1] || 0) * 60 + +m[2] : 0;
+  };
+
+  // Bolidi za mapu: udeo pređenog kruga (0-1). Sektori se dele po vremenima sektora iz poslednjeg kruga
+  // vozača (ako ih ima), mini-sektori unutar sektora jednako.
+  function track() {
+    const si = state?.SessionInfo;
+    if (!si) return null;
+    const counts = segCounts();
+    const N = counts ? counts.reduce((a, b) => a + b, 0) : 0;
+    const running = isRunning();
+    const now = Date.now();
+    const cars = Object.entries(state.TimingData?.Lines || {}).map(([num, l]) => {
+      const d = state.DriverList?.[num] || {};
+      let frac = null;
+      if (N) {
+        const st = items(l.Sectors).map(([, s]) => secs(s?.Value));
+        const total = st.reduce((a, b) => a + b, 0);
+        const share = st.length === counts.length && st.every((v) => v > 0) ? st.map((v) => v / total) : counts.map((c) => c / N);
+        const bound = [0];   // granica posle j-tog mini-sektora, kao udeo kruga
+        counts.forEach((c, s) => { for (let i = 0; i < c; i++) bound.push(bound.at(-1) + share[s] / c); });
+        let p = prog[num];
+        if (!p) {   // pre prve izmene: poslednji mini-sektor sa statusom u stanju
+          let k = -1, g = 0;
+          for (const [, sec] of items(l.Sectors)) for (const [, seg] of items(sec?.Segments)) { if (seg?.Status) k = g; g++; }
+          p = { k, at: 0 };
+        }
+        const k = p.k;
+        const base = bound[k + 1] ?? 0;
+        const next = (k + 1) % N;
+        const segShare = bound[next + 1] - bound[next];
+        const lap = secs(l.LastLapTime?.Value) || 95;
+        const moving = running && p.at && !l.InPit && !l.Retired && !l.Stopped;
+        const along = moving ? Math.min(0.92, (now - p.at) / 1000 / (lap * segShare)) * segShare : 0;
+        frac = (base + along) % 1;
+      }
+      return {
+        num, tla: d.Tla || num, color: d.TeamColour ? `#${d.TeamColour}` : "#888", pos: +l.Position || 99,
+        frac, pit: !!(l.InPit || l.PitOut), out: !!(l.Retired || l.Stopped || l.KnockedOut),
+      };
+    });
+    return {
+      key: si.Meeting?.Circuit?.Key, year: String(si.StartDate || "").slice(0, 4) || String(new Date().getFullYear()),
+      name: si.Meeting?.Circuit?.ShortName || "", session: SESSION_NAMES[si.Name] || si.Name || "", running, cars,
     };
   }
 
@@ -204,7 +280,8 @@
       return `<div class="loading"><span class="spinner"></span>Povezujem se na F1 live timing…</div>`;
     }
     if (!rows().length) return header(compact) + `<p class="empty">Još nema podataka o vremenima za ovu sesiju.</p>`;
-    const note = !isRunning() ? `<p class="hint">Nijedna sesija trenutno ne traje - prikazano je stanje na kraju poslednje sesije.</p>` : "";
+    const note = sessionStatus() === "Inactive" ? `<p class="hint">Sesija još nije počela - poredak i mapa kreću sami čim počne.</p>`
+      : !isRunning() ? `<p class="hint">Nijedna sesija trenutno ne traje - prikazano je stanje na kraju poslednje sesije.</p>` : "";
     return (compact ? "" : note) + (compact ? compactHtml() : fullHtml());
   }
 
@@ -261,7 +338,7 @@
   }
 
   SC.f1live = {
-    classification, summary,
+    classification, summary, track,
     // Trenutno stanje bez prikaza: koristi otvorenu vezu ili je kratko otvori (zatvara se sama ako sesija ne traje).
     snapshot() {
       if (state && (ws || Date.now() - stateAt < 60000)) return Promise.resolve(state);

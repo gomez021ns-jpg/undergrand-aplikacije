@@ -525,3 +525,83 @@ table.st td.pts-col, table.st th.pts-col { width: 40%; }
 .lb li.first { grid-template-columns: 26px 44px minmax(0, 1fr) auto; }
 .lb li.first .lb-val { font-size: 22px; color: var(--acc-text); }
 @media (min-width: 1200px) { .lb-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ===== F1 mapa staze, Reprodukcija i fudbalski Teren (22. 11. 2026) ===== */
+/* Uživo: tabela levo, staza desno (samo desktop). */
+.live-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 420px); gap: 16px; align-items: start; }
+.live-map { position: sticky; top: 12px; padding: 14px; }
+@media (max-width: 1100px) { .live-grid { grid-template-columns: 1fr; } .live-map { position: static; } }
+.f1m-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.f1m-head b { font-size: 15px; }
+.f1m-box { height: min(48vh, 420px); display: grid; place-items: center; }
+.f1m-box { position: relative; }
+.f1m-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.f1m-edge { fill: none; stroke: var(--line); stroke-width: 11px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.f1m-trk { fill: none; stroke: var(--muted); stroke-width: 3.5px; stroke-linejoin: round; vector-effect: non-scaling-stroke; opacity: .75; }
+.f1m-start { fill: #fff; stroke: #e10600; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.f1m-corner { fill: var(--muted); font-weight: 600; text-anchor: middle; dominant-baseline: middle; opacity: .7; }
+.f1m-car circle { stroke: #0b0d10; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.f1m-car text { fill: var(--text); font-weight: 800; text-anchor: middle; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; vector-effect: non-scaling-stroke; }
+.f1m-car.dim { opacity: .4; }
+.f1m-hint { margin: 8px 0 0; font-size: 12px; }
+.f1m-note { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-link { font-size: 13px; font-weight: 600; margin-left: 8px; }
+
+/* Reprodukcija */
+.rp-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 14px; }
+.rp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.rp-map { padding: 14px; }
+.rp-map .f1m-box { height: min(62vh, 620px); }
+.rp-side h3 { margin-top: 0; }
+.rp-order { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+.rp-order li { display: grid; grid-template-columns: 26px 6px 38px 1fr; gap: 8px; align-items: center; padding: 3px 4px; border-radius: 6px; }
+.rp-order li:nth-child(-n+3) { background: var(--surface2); }
+.rp-order i { width: 6px; height: 16px; border-radius: 2px; }
+.rp-order .muted { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-pos { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rp-ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; }
+.rp-speeds { display: inline-flex; gap: 6px; }
+.rp-speed { min-width: 44px; padding: 0 10px; }
+.rp-speed.on { border-color: #f7b65e; background: linear-gradient(#f7b65e, #d8871f); color: #1b1206; }
+.rp-slider { flex: 1 1 260px; accent-color: #F0A23B; }
+.rp-time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 180px; text-align: right; }
+@media (max-width: 1100px) { .rp-grid { grid-template-columns: 1fr; } }
+
+/* Fudbal: teren u Detaljima */
+.pt-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.pt-head h3 { margin: 0; }
+.pt-filters { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
+.pt-chip { font: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+.pt-chip.on { background: var(--surface2); color: var(--text); border-color: var(--brand); }
+.pt-half { height: 30px; font-size: 12px; }
+.pt.v-lu .pt-filters { display: none; }
+.pt-teams { display: flex; justify-content: space-between; gap: 12px; margin: 12px 0 6px; font-weight: 700; font-size: 14px; }
+.pt-teams span { display: inline-flex; align-items: center; gap: 8px; }
+.pt-teams i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgb(0 0 0 / .4); }
+.pt.v-shots .pt-lv, .pt.v-lu .pt-sv { display: none; }
+.pt-svg { width: 100%; display: block; background: #1c5130; border-radius: 10px; }
+.pt-lines { fill: none; stroke: rgb(255 255 255 / .55); stroke-width: .25; }
+.pt-lines .pt-dot { fill: rgb(255 255 255 / .7); stroke: none; }
+.pt-lines .pt-goal { fill: rgb(255 255 255 / .18); }
+.pt.v-shots .pt-lu, .pt.v-lu .pt-shots { display: none; }
+.pm circle { stroke-width: .35; }
+.pm-ln { stroke-width: .28; opacity: .75; }
+.pm-blk .pm-ln { stroke-dasharray: .6 .5; }
+.pm-off circle, .pm-wood circle, .pm-blk circle { fill: rgb(0 0 0 / .25); }
+.pm-ring { fill: none; stroke-width: .25; }
+.pm-foul path { stroke-width: .4; fill: none; }
+.pm:hover circle, .pm:hover path, .pm:hover rect { filter: drop-shadow(0 0 1px #fff); }
+.pt:not(.f-shot) .pm-shot, .pt:not(.f-foul) .pm-foul, .pt:not(.f-corner) .pm-corner, .pt:not(.f-offside) .pm-offside { display: none; }
+.pt.h-1 .pm-h2, .pt.h-1 .pm-hx, .pt.h-2 .pm-h1, .pt.h-2 .pm-hx { display: none; }
+.lu-p circle:first-child { stroke: rgb(0 0 0 / .55); stroke-width: .25; }
+.lu-no { font-size: 1.7px; font-weight: 800; text-anchor: middle; }
+.lu-nm { font-size: 1.6px; font-weight: 700; text-anchor: middle; fill: #fff; paint-order: stroke; stroke: rgb(0 0 0 / .65); stroke-width: .35; }
+.lu-goal { fill: #fff; stroke: #111; stroke-width: .2; }
+.lu-yel { fill: #f5d000; } .lu-red { fill: #e0262b; }
+.lu-sub { font-size: 2px; font-weight: 800; fill: #ff8a80; }
+.pt-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.lg { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--brand); margin-left: 4px; }
+.lg-goal { background: var(--brand); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--brand); }
+.lg-on { background: var(--brand); }
+.lg-blk { border-style: dashed; }
+.pt.v-lu .pt-legend { display: none; }

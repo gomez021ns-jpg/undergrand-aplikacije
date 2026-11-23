@@ -58,6 +58,9 @@ const FIG_W_DIRS = F.figure(
 
 // ─────────────────────────────── IGRA ───────────────────────────────
 
+// Šeme koje koristi i vodič za početnike (worms-pocetnici.js)
+window.W_FIG = { FIG_W_TURN, FIG_W_DIRS };
+
 registerGame({
   id: "worms",
   title: "Worms: The Board Game",

@@ -7,6 +7,22 @@
   const VERZIJE = [
     { datum: "2026-11-20",
       nove: [
+        "Novo dugme „+ Kupio sam novu igru“ na dnu početne strane: upišeš naziv igre ili dodatka, napomenu i (po želji) sliku kutije, i igra se odmah pojavi u odeljku „Čeka na pravila“. Claude posle vidi taj spisak i dodaje pravila. Pri čuvanju pregledač traži dozvolu da upiše u folder aplikacije; dugme postoji samo na računaru, ne na javnom sajtu.",
+      ],
+      dorade: [] },
+    { datum: "2026-11-20",
+      nove: [
+        "Star Wars: The Deckbuilding Game: nova kartica „Za početnike“ - igra u pet minuta, reči koje moraš znati, postavljanje stola, kontrolna lista poteza, šta smeš da kupiš, Sila, napad korak po korak, primer prvih poteza i najčešće greške.",
+        "Star Wars: Unlimited: nova kartica „Za početnike“ za prvu partiju sa Shadows of the Galaxy starterom (Gideon vs Mandalorijanac) - runda kao kontrolna lista, plaćanje i aspekti, napad na primerima, kad i kako leader ulazi u bitku, primer prve runde i najčešće greške.",
+        "Worms: nova kartica „Za početnike“ - postavljanje za prvu partiju (2 crva), kontrolna lista poteza, šta znače strane kockica, prvi pucanj Bazukom korak po korak, opasnosti na mapi i najčešće greške.",
+        "The Mandalorian: Adventures: nova kartica „Za početnike“ (bez spojlera) - kako da pratiš Guide Deck u prvoj partiji, kako rade action slotovi i kako da ne probudiš neprijatelje, kontrolna lista poteza i najčešće greške.",
+      ],
+      dorade: [
+        "Ispravljene dve šeme u kojima je tekst izlazio iz okvira (tok poteza u Star Wars: The Deckbuilding Game i kampanja u dodatku Reinforcements).",
+        "Flesh and Blood više ne pokušava da učita sliku koja ne postoji.",
+      ] },
+    { datum: "2026-11-20",
+      nove: [
         "Riftbound: nova kartica „Za početnike“ - vodič kroz prvu partiju korak po korak: igra u pet minuta, reči koje moraš znati, postavljanje stola sa Zed vs Shen špilovima, kontrolna lista poteza, plaćanje karata, borba na primerima, poeni, kad smeš da reaguješ u protivnikovom potezu, primer kraja partije i najčešće greške. Može i da se odštampa.",
         "Riftbound: ključne reči iz seta Radiance (Deploy, Disarm, Show Off) i razlika između „pick“ i „choose“.",
       ],

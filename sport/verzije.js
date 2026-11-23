@@ -5,6 +5,16 @@
 // Nov unos ide NA VRH liste: datum, `nove` (šta je novo) i `dorade` (dorade i ispravke); oznaka vrste se računa sama.
 (() => {
   const VERZIJE = [
+    { datum: "2026-11-22",
+      nove: [
+        "F1 „Uživo“: pored poretka je mapa staze sa bolidima kao tačkama u bojama timova, koje se kreću tokom sesije. Položaj je približan (zvanični F1 tok javlja samo kad bolid pređe deo staze), ali redosled i razmaci na stazi se jasno vide.",
+        "F1: nova kartica „Reprodukcija“ - posle završene sesije cela trka (ili kvalifikacije, trening) se pušta na mapi staze sa pravim kretanjem svih bolida, brzinom 1× do 16×, sa klizačem, brojem kruga i poretkom pored mape. Iz rezultata trke vodi link „Reprodukcija na stazi“.",
+        "Premijer liga i Liga šampiona: u Detaljima utakmice nov deo „Teren“ - mapa šuteva (odakle je šutirano i kuda je lopta otišla: gol, u okvir, pored, blokirano), po želji i prekršaji, korneri i ofsajdi, za celu utakmicu ili jedno poluvreme. Uživo se dopunjuje sama.",
+        "„Teren“ ima i prikaz „Postave“: obe ekipe raspoređene po formaciji, sa brojevima, golovima, kartonima i izmenama.",
+      ],
+      dorade: [
+        "F1 „Uživo“: kad se kartica otvori pre početka sesije, poredak i mapa kreću sami čim sesija počne (ranije je trebalo sačekati osvežavanje).",
+      ] },
     { datum: "2026-11-20",
       nove: [],
       dorade: [

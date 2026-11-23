@@ -43,6 +43,9 @@ const FIG_M_SLOTS = F.figure(
 
 // ─────────────────────────────── IGRA ───────────────────────────────
 
+// Šeme koje koristi i vodič za početnike (mandalorian-adventures-pocetnici.js)
+window.M_FIG = { FIG_M_TURN, FIG_M_SLOTS };
+
 registerGame({
   id: "mandalorian-adventures",
   title: "The Mandalorian: Adventures",
