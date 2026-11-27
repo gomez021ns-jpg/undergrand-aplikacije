@@ -118,5 +118,5 @@ const Mus={on:true, name:null, last:null, step:0, next:0, bus:null, rate:1,
   },
 };
 try{ Mus.on=localStorage.getItem('punkman-muzika')!=='0'; }catch(e){}
-function musicLabel(){ document.getElementById('music').textContent=Mus.on?'Muzika: uklj.':'Muzika: isklj.'; }
+function musicLabel(){ document.getElementById('music').textContent=t(Mus.on?'musicOn':'musicOff'); }
 function toggleMusic(){ Mus.on=!Mus.on; try{ localStorage.setItem('punkman-muzika',Mus.on?'1':'0'); }catch(e){} musicLabel(); }

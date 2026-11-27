@@ -133,7 +133,7 @@ function updGhost(g,dt){
 // ---------- GAME EVENTS ----------
 function addScore(n){
   score+=n;
-  while(score>=nextLife){ nextLife+=LIFE_EVERY; lives++; popup(player.x,player.y-1,'+1 ŽIVOT','#ffd400'); sfx('bonus'); }
+  while(score>=nextLife){ nextLife+=LIFE_EVERY; lives++; popup(player.x,player.y-1,t('life'),'#ffd400'); sfx('bonus'); }
   if(score>hi && !demo){ hi=score; try{localStorage.setItem('punkman-hi',hi)}catch(e){} }
   updHud();
 }
@@ -191,7 +191,7 @@ function update(dt){
   if(player.dir) player.anim+=dt*14;
   if(bonus && Math.abs(player.x-bonus.x)<.6 && Math.abs(player.y-bonus.y)<.6){
     const b=BOARDS[level]; addScore(b.bonusPts); collected[level]=true; renderShelf();
-    popup(bonus.x,bonus.y,'+'+b.bonusPts+' '+b.bonusName.toUpperCase(),'#ffd400'); bonus=null; sfx('bonus');
+    popup(bonus.x,bonus.y,'+'+b.bonusPts+' '+tx(b,'bonusName').toUpperCase(),'#ffd400'); bonus=null; sfx('bonus');
   }
   updAmp();
 }
@@ -202,7 +202,7 @@ function collide(){
     if(dx+Math.abs(g.y-player.y)<.7){
       if(g.fright){
         g.fright=false; g.state='eyes'; const pts=200*2**combo; combo=Math.min(combo+1,3);
-        addScore(pts); popup(g.x,g.y,pts+' '+g.eaten,'#ff2d7a'); varnice(Math.round(g.x),Math.round(g.y),'#ff2d7a',9); freezeT=.45; sfx('eat');
+        addScore(pts); popup(g.x,g.y,pts+' '+tx(g,'eaten'),'#ff2d7a'); varnice(Math.round(g.x),Math.round(g.y),'#ff2d7a',9); freezeT=.45; sfx('eat');
       } else { die(g); return true; }
     }
   }
@@ -248,7 +248,7 @@ function renderMaze(){
   }
   // venue sign above the ghost house
   c.fillStyle=b.edge; c.globalAlpha=.55; c.font=`${Math.round(s*.55)}px 'Special Elite', monospace`; c.textAlign='center'; c.textBaseline='middle';
-  c.fillText(b.short.toUpperCase(),W/2*s,(HOUSE_Y+1.5)*s); c.globalAlpha=1;
+  c.fillText(tx(b,'short').toUpperCase(),W/2*s,(HOUSE_Y+1.5)*s); c.globalAlpha=1;
   // mutna kopija table za neon odsjaj (koristi se dok traje pojačalo)
   glowCv.width=mazeCv.width; glowCv.height=mazeCv.height;
   gctx.setTransform(1,0,0,1,0,0); gctx.clearRect(0,0,glowCv.width,glowCv.height);
@@ -256,7 +256,7 @@ function renderMaze(){
   gctx.drawImage(mazeCv,0,0);
   gctx.filter='none';
 }
-function render(t){
+function render(now){ // now = vreme u s (ne „t“: t() je prevod iz i18n.js)
   if(!grid) return; const s=ts, c=ctx, b=BOARDS[level];
   c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,cv.width,cv.height);
   let sx=0,sy=0; if(shakeT>0){ sx=(Math.random()-.5)*s*.5; sy=(Math.random()-.5)*s*.5; }
@@ -265,7 +265,7 @@ function render(t){
   c.drawImage(mazeCv,0,0);
   if(frightT>0){ // dok traje pojačalo, ivice zidova svetle (neon)
     c.save(); c.globalCompositeOperation='lighter';
-    c.globalAlpha=.16+.10*Math.sin(t*9);
+    c.globalAlpha=.16+.10*Math.sin(now*9);
     c.drawImage(glowCv,0,0); c.restore();
   }
   if(flashMaze){ c.fillStyle='rgba(255,255,255,.18)'; c.fillRect(0,0,cv.width,cv.height); }
@@ -278,7 +278,7 @@ function render(t){
       if(b.pellet==='pin') drawPin(c,px,py,s,hash(x,y)*Math.PI,pc);
       else if(b.pellet==='badge') drawBadge(c,px,py,s,BADGE_COLS[Math.floor(hash(x,y)*BADGE_COLS.length)]);
       else drawTape(c,px,py,s,pc);
-    } else if(ch==='o') drawAmp(c,px,py,s,t,b.edge);
+    } else if(ch==='o') drawAmp(c,px,py,s,now,b.edge);
   }
   // varnice (jelo, pojedeni duh)
   for(const k of sparks){
@@ -286,13 +286,13 @@ function render(t){
     const r=Math.max(1,s*k.r); c.fillRect(k.x*s-r/2,k.y*s-r/2,r,r);
   }
   c.globalAlpha=1;
-  if(bonus && (bonus.t>2 || Math.floor(bonus.t*6)%2===0)) drawBonus(c,b.bonus,(bonus.x+.5)*s,(bonus.y+.5)*s,s*1.05,t);
+  if(bonus && (bonus.t>2 || Math.floor(bonus.t*6)%2===0)) drawBonus(c,b.bonus,(bonus.x+.5)*s,(bonus.y+.5)*s,s*1.05,now);
   // ghosts
   if(state!=='dying' || stateT<.6){
     for(const g of ghosts){
       const flash=g.fright && frightT<2 && Math.floor(frightT*6)%2===0;
-      drawGhost(c,(g.x+.5)*s,(g.y+.5)*s,s,g,t,flash);
-      if(g.x>W-1.5) drawGhost(c,(g.x-W+.5)*s,(g.y+.5)*s,s,g,t,flash);
+      drawGhost(c,(g.x+.5)*s,(g.y+.5)*s,s,g,now,flash);
+      if(g.x>W-1.5) drawGhost(c,(g.x-W+.5)*s,(g.y+.5)*s,s,g,now,flash);
     }
   }
   // player
@@ -314,28 +314,28 @@ function render(t){
   if(bannerT>0){
     c.save(); c.translate(W*s/2,H*s*.36); c.rotate(-.06); const k=Math.min(1,(1.6-bannerT)*6);
     c.scale(k,k); c.fillStyle='#ffd400'; c.fillRect(-W*s*.42,-s*.9,W*s*.84,s*1.8);
-    c.fillStyle='#131115'; c.font=`${Math.round(s*1.05)}px 'Archivo Black', Impact, sans-serif`; c.fillText('ODVRNUTO NA 11!',0,s*.05); c.restore();
+    c.fillStyle='#131115'; c.font=`${Math.round(s*1.05)}px 'Archivo Black', Impact, sans-serif`; c.fillText(t('turnedUp'),0,s*.05); c.restore();
   }
   if(demo){
     c.font=`${Math.round(s*1.2)}px 'Permanent Marker', cursive`; c.lineWidth=s*.25; c.strokeStyle='#131115';
     c.strokeText('DEMO',W/2*s,(HOUSE_Y+3.5)*s); c.fillStyle='#ffd400'; c.fillText('DEMO',W/2*s,(HOUSE_Y+3.5)*s);
-    if(Math.floor(t*2)%2===0){ c.font=`${Math.round(s*.5)}px 'IBM Plex Mono', monospace`; c.lineWidth=s*.15; const y=(HOUSE_Y+4.6)*s;
-      c.strokeText('Enter ili razmak za igru',W/2*s,y); c.fillStyle='#f1eef2'; c.fillText('Enter ili razmak za igru',W/2*s,y); }
+    if(Math.floor(now*2)%2===0){ c.font=`${Math.round(s*.5)}px 'IBM Plex Mono', monospace`; c.lineWidth=s*.15; const y=(HOUSE_Y+4.6)*s;
+      c.strokeText(t('demoHint'),W/2*s,y); c.fillStyle='#f1eef2'; c.fillText(t('demoHint'),W/2*s,y); }
   } else if(state==='ready'){
-    const n=Math.min(4,Math.floor(stateT/.5)+1); const txt=['JEDAN','DVA','TRI','ČETIR!'][n-1];
+    const n=Math.min(4,Math.floor(stateT/.5)+1); const txt=t('count')[n-1];
     c.font=`${Math.round(s*1.2)}px 'Permanent Marker', cursive`; c.lineWidth=s*.25; c.strokeStyle='#131115';
     c.strokeText(txt,W/2*s,(HOUSE_Y+3.5)*s); c.fillStyle='#ff2d7a'; c.fillText(txt,W/2*s,(HOUSE_Y+3.5)*s);
   }
   if(state==='paused'){
     c.fillStyle='rgba(19,17,21,.6)'; c.fillRect(0,0,W*s,H*s);
-    c.font=`${Math.round(s*1.3)}px 'Archivo Black', Impact, sans-serif`; c.fillStyle='#f1eef2'; c.fillText('PAUZA',W/2*s,(H/2-.5)*s);
-    c.font=`${Math.round(s*.5)}px 'IBM Plex Mono', monospace`; c.fillStyle='#9a92a0'; c.fillText('pritisni P ili dodirni tablu',W/2*s,(H/2+.9)*s);
+    c.font=`${Math.round(s*1.3)}px 'Archivo Black', Impact, sans-serif`; c.fillStyle='#f1eef2'; c.fillText(t('paused'),W/2*s,(H/2-.5)*s);
+    c.font=`${Math.round(s*.5)}px 'IBM Plex Mono', monospace`; c.fillStyle='#9a92a0'; c.fillText(t('pausedHint'),W/2*s,(H/2+.9)*s);
   }
 }
 // ---------- HUD ----------
 function updHud(){
-  $('score').textContent=score.toLocaleString('sr-RS'); $('hi').textContent=hi.toLocaleString('sr-RS');
-  $('board').textContent=(level+1)+' · '+BOARDS[level].short+(loop?' ×'+(loop+1):'');
+  $('score').textContent=num(score); $('hi').textContent=num(hi);
+  $('board').textContent=(level+1)+' · '+tx(BOARDS[level],'short')+(loop?' ×'+(loop+1):'');
   const L=$('lives'); L.innerHTML='';
   const n=Math.max(0,lives-(state==='play'||state==='ready'?1:0)); // najviše 5 sličica, ostatak kao „+n“
   for(let i=0;i<Math.min(n,5);i++){ const k=document.createElement('canvas'); k.width=36;k.height=36;k.style.width='18px';k.style.height='18px'; const x=k.getContext('2d'); drawPunk(x,18,20,30,'R',.35,0); L.appendChild(k); }
@@ -348,45 +348,45 @@ function updAmp(){
 }
 function renderShelf(){
   const sh=$('shelf'); sh.innerHTML='';
-  BOARDS.forEach((b,i)=>{ const k=document.createElement('canvas'); k.width=60;k.height=60; k.title=b.bonusName+(collected[i]?' — skupljeno':''); if(collected[i]) k.className='got'; drawBonus(k.getContext('2d'),b.bonus,30,30,52,0); sh.appendChild(k); });
+  BOARDS.forEach((b,i)=>{ const k=document.createElement('canvas'); k.width=60;k.height=60; k.title=tx(b,'bonusName')+(collected[i]?t('collected'):''); if(collected[i]) k.className='got'; drawBonus(k.getContext('2d'),b.bonus,30,30,52,0); sh.appendChild(k); });
 }
 function renderCast(){
   const box=$('cast'); box.innerHTML='';
   const mk=(draw,title,text)=>{ const row=document.createElement('div'); row.className='row'; const k=document.createElement('canvas'); k.width=104;k.height=104; draw(k.getContext('2d')); row.appendChild(k);
     const d=document.createElement('div'); d.innerHTML=`<b>${title}</b><span>${text}</span>`; row.appendChild(d); box.appendChild(row); };
-  mk(c=>drawPunk(c,52,58,80,'R',.4,0),'Punkman','Ti. Kresta, zihernadla u uvu, bez kompromisa.');
-  for(const g of GHOSTS) mk(c=>drawGhost(c,52,56,84,{...g,state:'active',dir:'R',fright:false,raid:g.id==='inspektor'?1:0},.3,false),g.name,g.role);
-  mk(c=>drawAmp(c,52,52,90,0,'#ffd400'),'Pojačalo „odvrnuto na 11“','Pojedi ga i svi beže od tebe. Hvataj ih dok se pojačalo ne ugasi.');
+  mk(c=>drawPunk(c,52,58,80,'R',.4,0),'Punkman',t('punkRole'));
+  for(const g of GHOSTS) mk(c=>drawGhost(c,52,56,84,{...g,state:'active',dir:'R',fright:false,raid:g.id==='inspektor'?1:0},.3,false),tx(g,'name'),tx(g,'role'));
+  mk(c=>drawAmp(c,52,52,90,0,'#ffd400'),t('ampName'),t('ampRole'));
 }
 function renderTour(){
   const ol=$('tour'); ol.innerHTML='';
   BOARDS.forEach((b,i)=>{ const li=document.createElement('li'); if(i===level && state!=='title') li.className='now';
-    li.innerHTML=`<span class="n">${i+1}</span><span class="t"><b>${b.name}</b> · skupljaš ${b.pelletName}, bonus: ${b.bonusName.toLowerCase()}</span><span class="lvl">${b.diff}</span>`; ol.appendChild(li); });
+    li.innerHTML=`<span class="n">${i+1}</span><span class="t">${t('tourRow',{name:tx(b,'name'),pellets:tx(b,'pelletName'),bonus:tx(b,'bonusName').toLowerCase()})}</span><span class="lvl">${tx(b,'diff')}</span>`; ol.appendChild(li); });
 }
 // ---------- OVERLAYS ----------
-function showOv(html,act){ ov.innerHTML=`<div class="flyer">${html}</div>`; idleT=0; ov.hidden=false; const b=ov.querySelector('.go'); if(b){ b.onclick=e=>{e.stopPropagation(); act();}; setTimeout(()=>b.focus({preventScroll:true}),30); } ovAct=act; }
-function hideOv(){ ov.hidden=true; ovAct=null; }
-let ovAct=null;
+function showOv(html,act,redo){ ovRedo=redo||null; ov.innerHTML=`<div class="flyer">${html}</div>`; idleT=0; ov.hidden=false; const b=ov.querySelector('.go'); if(b){ b.onclick=e=>{e.stopPropagation(); act();}; setTimeout(()=>b.focus({preventScroll:true}),30); } ovAct=act; }
+function hideOv(){ ov.hidden=true; ovAct=null; ovRedo=null; }
+let ovAct=null, ovRedo=null; // ovRedo ponovo iscrta otvoreni flajer na drugom jeziku
 function showTitle(){
-  showOv(`<span class="tag">nova igra · demo</span><h2>Pojedi sve zihernadle. Ne daj se sistemu.</h2>
-  <p>Tri table, četiri neprijatelja i jedno pojačalo odvrnuto na 11. Murija, menadžer, rijaliti zvezda i komunalni inspektor jure te od podruma do grada.</p>
-  <button class="go" type="button">Sviraj</button><span class="small">Enter ili razmak za start</span>`, newGame);
+  showOv(`<span class="tag">${t('titleTag')}</span><h2>${t('titleH')}</h2>
+  <p>${t('titleP')}</p>
+  <button class="go" type="button">${t('play')}</button><span class="small">${t('startHint')}</span>`, newGame, showTitle);
 }
 function showInter(n){
   const b=BOARDS[n];
-  showOv(`<span class="tag">tabla ${n+1} od 3 · ${b.diff}</span><h2>${b.name}</h2>
-  <p>Skupljaš ${b.pelletName}. Kad pojedeš trećinu, pa još trećinu, na startu se pojavi bonus: <b>${b.bonusName.toLowerCase()}</b>.</p>
-  <button class="go" type="button">Na binu</button>`, ()=>{ loadLevel(n); resetActors(); updHud(); setState('ready'); });
+  showOv(`<span class="tag">${t('interTag',{n:n+1,diff:tx(b,'diff')})}</span><h2>${tx(b,'name')}</h2>
+  <p>${t('interP',{pellets:tx(b,'pelletName'),bonus:tx(b,'bonusName').toLowerCase()})}</p>
+  <button class="go" type="button">${t('onStage')}</button>`, ()=>{ loadLevel(n); resetActors(); updHud(); setState('ready'); }, ()=>showInter(n));
 }
 function showOver(){
-  showOv(`<span class="tag">kraj svirke</span><h2>${score.toLocaleString('sr-RS')} poena</h2>
-  <p>${killer?killer.catch:''}</p><p class="small">Stigao si do table ${level+1}: ${BOARDS[level].name}. Rekord: ${hi.toLocaleString('sr-RS')}.</p>
-  <button class="go" type="button">Još jednom</button>`, newGame);
+  showOv(`<span class="tag">${t('overTag')}</span><h2>${t('points',{n:num(score)})}</h2>
+  <p>${killer?tx(killer,'catch'):''}</p><p class="small">${t('overP',{n:level+1,name:tx(BOARDS[level],'name'),hi:num(hi)})}</p>
+  <button class="go" type="button">${t('again')}</button>`, newGame, showOver);
 }
 function showWin(){
-  showOv(`<span class="tag">turneja završena</span><h2>Podrum, klub, grad. Sve tvoje.</h2>
-  <p>${score.toLocaleString('sr-RS')} poena. Demo-snimak je spreman, ali publika traži još.</p>
-  <button class="go" type="button">Bis! (brže)</button>`, ()=>{ loop++; loadLevel(0); resetActors(); updHud(); setState('ready'); });
+  showOv(`<span class="tag">${t('winTag')}</span><h2>${t('winH')}</h2>
+  <p>${t('winP',{n:num(score)})}</p>
+  <button class="go" type="button">${t('encore')}</button>`, ()=>{ loop++; loadLevel(0); resetActors(); updHud(); setState('ready'); }, showWin);
 }
 // ---------- REKORDI ----------
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
@@ -394,11 +394,11 @@ const qualifies=n=>n>0 && (rekordi.length<REK_MAX || n>rekordi[rekordi.length-1]
 const cleanIni=v=>v.toUpperCase().replace(/[^A-ZČĆŽŠĐ]/g,'').slice(0,3);
 function renderRek(){
   const ol=$('rek'); ol.innerHTML='';
-  if(!rekordi.length){ ol.innerHTML='<li><span class="empty">Još niko. Budi prvi na listi.</span></li>'; return; }
+  if(!rekordi.length){ ol.innerHTML=`<li><span class="empty">${t('rekEmpty')}</span></li>`; return; }
   rekordi.forEach((r,i)=>{ const li=document.createElement('li'); if(r.id===newRek) li.className='new';
-    const [y,m,d]=r.d.split('-'), b=BOARDS[r.l]||BOARDS[0];
-    li.innerHTML=`<span class="n">${i+1}.</span><span class="ini">${esc(r.i)}</span><span class="pts">${r.s.toLocaleString('sr-RS')}</span>`+
-      `<span class="meta">tabla ${r.l+1} · ${esc(b.short)}${r.k?' ×'+(r.k+1):''} · ${+d}. ${+m}. ${y}.</span>`; ol.appendChild(li); });
+    const b=BOARDS[r.l]||BOARDS[0];
+    li.innerHTML=`<span class="n">${i+1}.</span><span class="ini">${esc(r.i)}</span><span class="pts">${num(r.s)}</span>`+
+      `<span class="meta">${t('rekMeta',{n:r.l+1,name:esc(tx(b,'short'))})}${r.k?' ×'+(r.k+1):''} · ${fmtDay(r.d)}</span>`; ol.appendChild(li); });
 }
 function saveRek(ini){
   const now=new Date(), d=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
@@ -412,10 +412,10 @@ function endGame(){ if(qualifies(score)) showName(); else showOver(); }
 function showName(){
   let last=''; try{ last=cleanIni(localStorage.getItem(IME_KEY)||''); }catch(e){}
   const place=rekordi.filter(r=>r.s>=score).length+1;
-  showOv(`<span class="tag">kraj svirke · ${place}. mesto na listi</span><h2>${score.toLocaleString('sr-RS')} poena</h2>
-  <p>${killer?killer.catch:''}</p><p>Ušao si među deset najboljih. Upiši tri slova:</p>
-  <div class="ini-row"><input class="ini-in" id="ini" autocomplete="off" spellcheck="false" aria-label="Tri slova" value="${esc(last)}"><button class="go" type="button">Upiši</button></div>
-  <span class="small">Samo slova · Enter za upis</span>`, ()=>{
+  showOv(`<span class="tag">${t('nameTag',{place})}</span><h2>${t('points',{n:num(score)})}</h2>
+  <p>${killer?tx(killer,'catch'):''}</p><p>${t('nameP')}</p>
+  <div class="ini-row"><input class="ini-in" id="ini" autocomplete="off" spellcheck="false" aria-label="${t('nameAria')}" value="${esc(last)}"><button class="go" type="button">${t('save')}</button></div>
+  <span class="small">${t('nameHint')}</span>`, ()=>{
     const v=cleanIni($('ini').value); if(v.length<3){ $('ini').focus(); return; }
     saveRek(v); showOver();
   });
@@ -512,6 +512,14 @@ document.addEventListener('click',e=>{ if(e.target.closest('[data-verzije]')){ i
 document.addEventListener('visibilitychange',()=>{ if(document.hidden && demo) endDemo(); else if(document.hidden && state==='play') state='paused'; });
 $('mute').onclick=()=>{ initAudio(); toggleMute(); };
 $('music').onclick=()=>{ initAudio(); toggleMusic(); }; musicLabel();
+// Jezik: ponovo iscrta sve tekstove, i otvoreni flajer (osim upisa tri slova - ono što je ukucano ostaje).
+function setLang(l){
+  LANG=l; try{ localStorage.setItem('punkman-jezik',l); }catch(e){}
+  applyStatic(); musicLabel(); muteLabel(); renderCast(); renderTour(); renderRek(); renderShelf(); updHud(); renderMaze();
+  if(ovRedo && !ov.hidden) ovRedo();
+}
+$('lang').onclick=()=>setLang(LANG==='en'?'sr':'en');
+applyStatic(); muteLabel();
 
 // ---------- LOOP ----------
 let last=performance.now();

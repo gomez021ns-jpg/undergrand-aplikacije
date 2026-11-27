@@ -2,6 +2,8 @@
 // U punom ekranu dugme postaje „Izađi“ (radi i Esc). Ako je ceo prozor pregledača preko celog ekrana
 // (taster F11 ili prečica „pun ekran“ koja otvara Edge sa --start-fullscreen), stranica ne može sama
 // da izađe - tada dugme podseća na F11.
+// Višejezične aplikacije mogu da zamene tekstove preko window.UG_FS_TEXT ({ pun, izadji, f11, izadjiNaslov, f11Naslov });
+// događaj „ug:jezik“ na document-u ponovo iscrta dugme.
 (() => {
   const root = document.documentElement;
   if (!root.requestFullscreen) return; // npr. iPhone: nema Fullscreen API-ja
@@ -15,15 +17,16 @@
 
   function paint(b, hint) {
     const full = pageFull() || windowFull();
-    const text = hint || (full ? "Izađi" : "Pun ekran");
+    const L = window.UG_FS_TEXT || {};
+    const text = hint || (full ? L.izadji || "Izađi" : L.pun || "Pun ekran");
     b.innerHTML = `${full ? OUT : IN}<span class="fs-txt">${text}</span>`;
-    b.title = full ? (windowFull() ? "Izlaz iz punog ekrana: taster F11" : "Izađi iz punog ekrana (Esc)") : "Pun ekran";
+    b.title = full ? (windowFull() ? L.f11Naslov || "Izlaz iz punog ekrana: taster F11" : L.izadjiNaslov || "Izađi iz punog ekrana (Esc)") : L.pun || "Pun ekran";
     b.setAttribute("aria-label", b.title);
   }
   const paintAll = (hint) => document.querySelectorAll("[data-pun-ekran]").forEach((b) => paint(b, hint));
 
   function hintF11() {
-    paintAll("Pritisni F11");
+    paintAll((window.UG_FS_TEXT || {}).f11 || "Pritisni F11");
     clearTimeout(hintTimer);
     hintTimer = setTimeout(() => paintAll(), 2500);
   }
@@ -50,6 +53,7 @@
     if (e.key === "Escape" && windowFull() && !document.querySelector("dialog[open]")) hintF11();
   });
   document.addEventListener("fullscreenchange", () => paintAll());
+  document.addEventListener("ug:jezik", () => paintAll());
   matchMedia("(display-mode: fullscreen)").addEventListener("change", () => paintAll());
 
   ensure();

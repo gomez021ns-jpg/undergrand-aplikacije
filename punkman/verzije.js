@@ -5,6 +5,9 @@
 // Nov unos ide NA VRH liste: datum, `nove` (šta je novo) i `dorade` (dorade i ispravke); oznaka vrste se računa sama.
 (() => {
   const VERZIJE = [
+    { datum: "2026-11-27", nove: [
+      "Igra je sada na srpskom i engleskom: dugme „English“ / „Srpski“ u zaglavlju menja sve tekstove - flajere, natpise na tabli, postavu, turneju, rekorde i privatnost. Igra pamti izbor; prvi put sama bira srpski ako ga pregledač ima među jezicima, inače engleski. Adresa sa ?lang=en ili ?lang=sr otvara igru odmah na tom jeziku.",
+    ], dorade: [] },
     { datum: "2026-11-20",
       nove: [],
       dorade: [

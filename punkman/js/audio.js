@@ -27,4 +27,5 @@ function sfx(k){
   else if(k==='clear'){ [[82,123],[110,165],[123,185],[82,123]].forEach(([a,b],i)=>{ tone(a,.22,'sawtooth',.06,null,i*.24); tone(b,.22,'sawtooth',.045,null,i*.24); }); }
 }
 let muted=false;
-function toggleMute(){ muted=!muted; document.getElementById('mute').textContent=muted?'Zvuk: isklj.':'Zvuk: uklj.'; }
+function muteLabel(){ document.getElementById('mute').textContent=t(muted?'soundOff':'soundOn'); }
+function toggleMute(){ muted=!muted; muteLabel(); }
